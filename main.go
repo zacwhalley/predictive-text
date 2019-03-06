@@ -12,6 +12,7 @@ func main() {
 	}
 
 	fmt.Printf("User: /u/%s, Action: %s\n", user, action)
+	sampleRequest()
 }
 
 func getArgs() (string, string, error) {
