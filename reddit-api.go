@@ -10,14 +10,16 @@ import (
 // can get text from comment.data.body
 // no auth required
 
-// Create class for getting all comments
+type redditApiClient struct {
+}
 
-func sampleRequest() {
-	url := "http://www.reddit.com/user/gallowboob/comments.json"
+func (r redditApiClient) getUserComments(username string) {
+	url := fmt.Sprintf("https://www.reddit.com/user/%s/comments.json", username)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
 	}
+	req.Header.Set("User-Agent", "zw-reddit-simulator")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
