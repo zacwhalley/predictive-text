@@ -12,6 +12,8 @@ func main() {
 	}
 
 	fmt.Printf("User: /u/%s, Action: %s\n", user, action)
+	apiClient := redditAPIClient{}
+	apiClient.getUserComments(user)
 }
 
 func getArgs() (string, string, error) {
