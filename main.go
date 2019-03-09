@@ -12,7 +12,7 @@ func main() {
 	}
 
 	fmt.Printf("User: /u/%s, Action: %s\n", user, action)
-	apiClient := redditApiClient{}
+	apiClient := redditAPIClient{}
 	apiClient.getUserComments(user)
 }
 
