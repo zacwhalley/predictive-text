@@ -53,7 +53,8 @@ func (c *chain) build(r io.Reader) {
 	}
 }
 
-func (c *chain) Generate(n int) string {
+// Generate returns a string of n words generated from the chain
+func (c *chain) generate(n int) string {
 	p := make(prefix, c.prefixLen)
 	var words []string
 	for i := 0; i < n; i++ {
