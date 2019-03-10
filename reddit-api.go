@@ -42,6 +42,5 @@ func (r redditAPIClient) getUserComments(username string) []string {
 		content[i] = comment.Data.Body
 	}
 
-	fmt.Print(content)
 	return content
 }
