@@ -13,7 +13,8 @@ func main() {
 	//get user from input
 	user, wordCount, err := getArgs()
 	if err != nil {
-		fmt.Printf("How to use: ")
+		fmt.Println(err.Error())
+		fmt.Printf("How to use: reddit-simulator userName wordCount")
 	}
 
 	// get comments from user
@@ -32,8 +33,8 @@ func main() {
 }
 
 func getArgs() (string, int, error) {
-	if len(os.Args) < 2 {
-		return "", -1, fmt.Errorf("Expected %v argument but received %v", 1, len(os.Args))
+	if len(os.Args) != 3 {
+		return "", -1, fmt.Errorf("Expected %v arguments but received %v", 2, len(os.Args)-1)
 	}
 
 	wordCount, err := strconv.Atoi(os.Args[2])
