@@ -32,7 +32,7 @@ func (r redditAPIClient) getUserComments(username string) []string {
 	}
 
 	// decode response and convert json objects to simple array of comments
-	var comments dtos.CommentsDto
+	var comments dtos.CommentsPageDto
 	if err := json.NewDecoder(res.Body).Decode(&comments); err != nil {
 		panic(err)
 	}

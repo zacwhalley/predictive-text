@@ -1,7 +1,7 @@
 package dtos
 
-// CommentsDto is the data transfer object for holding a user's comments
-type CommentsDto struct {
+// CommentsPageDto is the data transfer object for holding a user's comments
+type CommentsPageDto struct {
 	Data struct {
 		Children []struct {
 			Data struct {
@@ -9,4 +9,5 @@ type CommentsDto struct {
 			} `json:"data"`
 		} `json:"children"`
 	} `json:"data"`
+	After string `json:"after"`
 }
