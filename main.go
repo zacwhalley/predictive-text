@@ -18,20 +18,26 @@ func main() {
 	}
 
 	// get comments from user
-	apiClient := redditAPIClient{}
-	comments := apiClient.getUserComments(user)
+	comments := make(chan []string)
+	go getAllComments(comments, user)
+
+	totalComments := 0
 
 	// generate and print text
 	rand.Seed(time.Now().UnixNano())
-	chain := newChain(1)
-	for _, comment := range comments {
-		reader := strings.NewReader(comment)
-		chain.build(reader)
+	chain := newChain(2)
+	for page := range comments {
+		totalComments += len(page)
+		for _, comment := range page {
+			reader := strings.NewReader(comment)
+			chain.build(reader)
+		}
 	}
 
 	fmt.Println(chain.generate(wordCount))
 }
 
+// getArgs
 func getArgs() (string, int, error) {
 	if len(os.Args) != 3 {
 		return "", -1, fmt.Errorf("Expected %v arguments but received %v", 2, len(os.Args)-1)
@@ -43,4 +49,19 @@ func getArgs() (string, int, error) {
 	}
 
 	return os.Args[1], wordCount, nil
+}
+
+// getAllComments makes requests to all pages of comments and sends them to the comments channel
+func getAllComments(comments chan<- []string, user string) {
+	api := redditAPIClient{}
+	pageRef := ""
+	var page []string
+	for {
+		page, pageRef = api.getUserComments(user, pageRef)
+		comments <- page
+		if pageRef == "" {
+			break
+		}
+	}
+	close(comments)
 }
