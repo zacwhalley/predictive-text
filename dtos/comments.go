@@ -8,6 +8,6 @@ type CommentsPageDto struct {
 				Body string `json:"body"`
 			} `json:"data"`
 		} `json:"children"`
+		After string `json:"after"`
 	} `json:"data"`
-	After string `json:"after"`
 }

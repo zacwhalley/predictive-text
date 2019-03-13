@@ -16,7 +16,8 @@ import (
 type redditAPIClient struct {
 }
 
-func (r redditAPIClient) getUserComments(username string) []string {
+// getUserComments returns an array of the comments by username on page, and a reference to the next page
+func (r redditAPIClient) getUserComments(username string, pageRef string) ([]string, string) {
 	// make request to /u/username's comments
 	url := fmt.Sprintf("https://www.reddit.com/user/%s/comments.json", username)
 	req, err := http.NewRequest("GET", url, nil)
@@ -24,6 +25,12 @@ func (r redditAPIClient) getUserComments(username string) []string {
 		panic(err)
 	}
 	req.Header.Set("User-Agent", "zw-reddit-simulator")
+	// add requested page to query params of url
+	if pageRef != "" {
+		params := req.URL.Query()
+		params.Add("after", pageRef)
+		req.URL.RawQuery = params.Encode()
+	}
 
 	client := &http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
@@ -32,15 +39,15 @@ func (r redditAPIClient) getUserComments(username string) []string {
 	}
 
 	// decode response and convert json objects to simple array of comments
-	var comments dtos.CommentsPageDto
-	if err := json.NewDecoder(res.Body).Decode(&comments); err != nil {
+	var page dtos.CommentsPageDto
+	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		panic(err)
 	}
 
-	content := make([]string, len(comments.Data.Children))
-	for i, comment := range comments.Data.Children {
-		content[i] = comment.Data.Body
+	comments := make([]string, len(page.Data.Children))
+	for i, comment := range page.Data.Children {
+		comments[i] = comment.Data.Body
 	}
 
-	return content
+	return comments, page.Data.After
 }
