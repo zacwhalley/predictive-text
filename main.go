@@ -68,7 +68,7 @@ func getAllComments(comments chan<- []string, user string, pageLimit int) {
 	pageRef := ""
 	var page []string
 	// loop through all pages if no pagelimit specified
-	for i := 0; i < pageLimit || pageLimit == 0; i++ {
+	for i := 0; i < pageLimit || pageLimit <= 0; i++ {
 		page, pageRef = api.getUserComments(user, pageRef)
 		comments <- page
 		if pageRef == "" {
