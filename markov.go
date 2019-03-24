@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"regexp"
 	"strings"
 )
 
@@ -47,6 +48,7 @@ func (c *chain) build(r io.Reader) {
 		if _, err := fmt.Fscan(br, &s); err != nil {
 			break
 		}
+		s = filter(s)
 		key := p.toString()
 		c.chain[key] = append(c.chain[key], s)
 		p.shift(s)
@@ -66,5 +68,25 @@ func (c *chain) generate(n int) string {
 		words = append(words, next)
 		p.shift(next)
 	}
+
+	// Capitalize first word
+	if len(words) != 0 {
+		words[0] = strings.Title(words[0])
+	}
+
 	return strings.Join(words, " ")
+}
+
+// filter removes non-word characters, and converts to lowercase
+func filter(s string) string {
+	// Remove all characters that are not part of words
+	symPattern := `[^a-zA-Z0-9 ']`
+	symRegex, err := regexp.Compile(symPattern)
+	if err != nil {
+		panic(err)
+	}
+	s = symRegex.ReplaceAllString(s, "")
+
+	// Convert to lowercase
+	return strings.ToLower(s)
 }
