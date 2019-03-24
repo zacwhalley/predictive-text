@@ -25,6 +25,16 @@ func (p prefix) shift(word string) {
 	p[len(p)-1] = word
 }
 
+// Remove the last non-empty word from the prefix with ""
+func (p prefix) reduce() {
+	for i := 0; i < len(p); i++ {
+		if p[i] != "" {
+			p[i] = ""
+			break
+		}
+	}
+}
+
 // Chain contains a map ("chain") of prefixes to a list of suffixes
 // A prefix is a string of prefixLen words joined with spaces
 // A suffix is a single word. A prefix can have multiple suffixes
@@ -59,12 +69,15 @@ func (c *chain) build(r io.Reader) {
 func (c *chain) generate(n int) string {
 	p := make(prefix, c.prefixLen)
 	var words []string
+	var next string
 	for i := 0; i < n; i++ {
 		choices := c.chain[p.toString()]
-		if len(choices) == 0 {
-			break
+		for len(choices) == 0 {
+			// No more options. Shorten prefix
+			p.reduce()
+			choices = c.chain[p.toString()]
 		}
-		next := choices[rand.Intn(len(choices))]
+		next = choices[rand.Intn(len(choices))]
 		words = append(words, next)
 		p.shift(next)
 	}
