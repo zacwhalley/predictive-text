@@ -14,7 +14,7 @@ func main() {
 	user, wordCount, pageLimit, err := getArgs()
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Printf("How to use: reddit-simulator userName wordCount")
+		fmt.Printf("How to use: reddit-simulator userName wordCount pageLimit (optional)")
 	}
 
 	// get comments from user
