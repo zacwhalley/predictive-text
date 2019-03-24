@@ -73,7 +73,7 @@ func (c *chain) generate(n int) string {
 	for i := 0; i < n; i++ {
 		choices := c.chain[p.toString()]
 		for len(choices) == 0 {
-			// No more options. Start new sentence & reset prefix
+			// No more options. Shorten prefix
 			p.reduce()
 			choices = c.chain[p.toString()]
 		}
