@@ -1,4 +1,4 @@
-package main
+package markov
 
 // modified from https://golang.org/doc/codewalk/markov/
 
@@ -38,19 +38,19 @@ func (p prefix) reduce() {
 // Chain contains a map ("chain") of prefixes to a list of suffixes
 // A prefix is a string of prefixLen words joined with spaces
 // A suffix is a single word. A prefix can have multiple suffixes
-type chain struct {
+type Chain struct {
 	chain     map[string][]string
 	prefixLen int
 }
 
 // NewChain returns a string with prefixes of length prefixLen
-func newChain(prefixLen int) *chain {
-	return &chain{make(map[string][]string), prefixLen}
+func NewChain(prefixLen int) *Chain {
+	return &Chain{make(map[string][]string), prefixLen}
 }
 
 // Build reads text from the provided Reader and parses it into prefixes
 // and suffixes stored in the chain
-func (c *chain) build(r io.Reader) {
+func (c *Chain) Build(r io.Reader) {
 	br := bufio.NewReader(r)
 	p := make(prefix, c.prefixLen)
 	for {
@@ -66,7 +66,7 @@ func (c *chain) build(r io.Reader) {
 }
 
 // Generate returns a string of n words generated from the chain
-func (c *chain) generate(n int) string {
+func (c *Chain) Generate(n int) string {
 	p := make(prefix, c.prefixLen)
 	var words []string
 	var next string

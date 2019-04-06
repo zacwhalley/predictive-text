@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/zacwhalley/reddit-simulator/markov"
 )
 
 func main() {
@@ -23,18 +25,20 @@ func main() {
 
 	totalComments := 0
 
-	// generate and print text
+	// build chain from comments got
 	rand.Seed(time.Now().UnixNano())
-	chain := newChain(2)
+	chain := markov.NewChain(2)
 	for page := range comments {
 		totalComments += len(page)
 		for _, comment := range page {
 			reader := strings.NewReader(comment)
-			chain.build(reader)
+			chain.Build(reader)
 		}
 	}
 
-	fmt.Println(chain.generate(wordCount))
+	// var db data.DBClient = data.MongoClient{}
+
+	fmt.Println(chain.Generate(wordCount))
 }
 
 // getArgs
