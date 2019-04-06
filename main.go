@@ -37,8 +37,9 @@ func main() {
 		}
 	}
 
+	// Save chain for fast lookup later
 	var db data.DBClient = data.NewMongoClient()
-	db.GetChain("test")
+	db.UpsertChain(user, chain)
 
 	fmt.Println(chain.Generate(wordCount))
 }
