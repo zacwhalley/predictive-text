@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zacwhalley/reddit-simulator/data"
 	"github.com/zacwhalley/reddit-simulator/markov"
 )
 
@@ -36,7 +37,8 @@ func main() {
 		}
 	}
 
-	// var db data.DBClient = data.MongoClient{}
+	var db data.DBClient = data.NewMongoClient()
+	db.GetChain("test")
 
 	fmt.Println(chain.Generate(wordCount))
 }
