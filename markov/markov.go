@@ -1,4 +1,4 @@
-package main
+package markov
 
 // modified from https://golang.org/doc/codewalk/markov/
 
@@ -38,21 +38,21 @@ func (p prefix) reduce() {
 // Chain contains a map ("chain") of prefixes to a list of suffixes
 // A prefix is a string of prefixLen words joined with spaces
 // A suffix is a single word. A prefix can have multiple suffixes
-type chain struct {
-	chain     map[string][]string
-	prefixLen int
+type Chain struct {
+	Chain     map[string][]string
+	PrefixLen int
 }
 
 // NewChain returns a string with prefixes of length prefixLen
-func newChain(prefixLen int) *chain {
-	return &chain{make(map[string][]string), prefixLen}
+func NewChain(prefixLen int) *Chain {
+	return &Chain{make(map[string][]string), prefixLen}
 }
 
 // Build reads text from the provided Reader and parses it into prefixes
 // and suffixes stored in the chain
-func (c *chain) build(r io.Reader) {
+func (c *Chain) Build(r io.Reader) {
 	br := bufio.NewReader(r)
-	p := make(prefix, c.prefixLen)
+	p := make(prefix, c.PrefixLen)
 	for {
 		var s string
 		if _, err := fmt.Fscan(br, &s); err != nil {
@@ -60,22 +60,22 @@ func (c *chain) build(r io.Reader) {
 		}
 		s = filter(s)
 		key := p.toString()
-		c.chain[key] = append(c.chain[key], s)
+		c.Chain[key] = append(c.Chain[key], s)
 		p.shift(s)
 	}
 }
 
 // Generate returns a string of n words generated from the chain
-func (c *chain) generate(n int) string {
-	p := make(prefix, c.prefixLen)
+func (c *Chain) Generate(n int) string {
+	p := make(prefix, c.PrefixLen)
 	var words []string
 	var next string
 	for i := 0; i < n; i++ {
-		choices := c.chain[p.toString()]
+		choices := c.Chain[p.toString()]
 		for len(choices) == 0 {
 			// No more options. Shorten prefix
 			p.reduce()
-			choices = c.chain[p.toString()]
+			choices = c.Chain[p.toString()]
 		}
 		next = choices[rand.Intn(len(choices))]
 		words = append(words, next)

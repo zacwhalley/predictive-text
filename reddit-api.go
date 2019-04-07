@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zacwhalley/reddit-simulator/dtos"
+	"github.com/zacwhalley/reddit-simulator/dto"
 )
 
 // ex request for comments: GET http://www.reddit.com/user/USERNAME/comments.json
