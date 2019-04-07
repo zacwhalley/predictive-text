@@ -2,10 +2,12 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/zacwhalley/reddit-simulator/markov"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -35,7 +37,24 @@ func (m MongoClient) GetChain(userName string) *UserChainDao {
 		log.Fatal("No connection to MongoDB")
 	}
 
-	return nil
+	chains := m.client.Database("redditSim").Collection("chain")
+	filter := bson.D{{Key: "user", Value: userName}}
+	options := &options.FindOneOptions{}
+	result := &UserChainDao{}
+
+	findResult := chains.FindOne(context.TODO(), filter, options)
+	if err := findResult.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	err := findResult.Decode(result)
+	if err != nil {
+		// No document was found
+		fmt.Printf("Returning nothing from find chain")
+		return nil
+	}
+
+	return result
 }
 
 // UpsertChain upserts the chain for a user
@@ -46,10 +65,15 @@ func (m MongoClient) UpsertChain(userName string, chain *markov.Chain) {
 
 	// Get chain collection from redditSim db
 	chains := m.client.Database("redditSim").Collection("chain")
+	userChain := UserChainDao{userName, chain, time.Now()}
 
 	// Insert chain as new document
-	userChain := UserChainDao{userName, chain, time.Now()}
-	_, err := chains.InsertOne(context.TODO(), userChain)
+	filter := bson.D{{Key: "user", Value: userName}}
+	update := bson.D{{Key: "$set", Value: userChain}}
+	isUpsert := true
+	options := &options.UpdateOptions{Upsert: &isUpsert}
+
+	_, err := chains.UpdateOne(context.TODO(), filter, update, options)
 	if err != nil {
 		log.Fatal(err)
 	}

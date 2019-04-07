@@ -20,27 +20,21 @@ func main() {
 		fmt.Printf("How to use: reddit-simulator userName wordCount pageLimit (optional)")
 	}
 
-	// get comments from user
-	comments := make(chan []string)
-	go getAllComments(comments, user, pageLimit)
+	var chain *markov.Chain
+	var db data.DBClient = data.NewMongoClient()
+	chainResult := db.GetChain(user)
 
-	totalComments := 0
-
-	// build chain from comments got
-	rand.Seed(time.Now().UnixNano())
-	chain := markov.NewChain(2)
-	for page := range comments {
-		totalComments += len(page)
-		for _, comment := range page {
-			reader := strings.NewReader(comment)
-			chain.Build(reader)
-		}
+	// See if valid chain already exists
+	if chainResult != nil {
+		// Chain already exists and is valid
+		chain = chainResult.Chain
+	} else {
+		// Chain must be generated
+		chain = buildChain(user, pageLimit)
 	}
 
-	// Save chain for fast lookup later
-	var db data.DBClient = data.NewMongoClient()
-	db.UpsertChain(user, chain)
-
+	// Generate text from the chain
+	rand.Seed(time.Now().UnixNano())
 	fmt.Println(chain.Generate(wordCount))
 }
 
@@ -66,6 +60,27 @@ func getArgs() (string, int, int, error) {
 	}
 
 	return os.Args[1], wordCount, pageLimit, nil
+}
+
+func buildChain(user string, pageLimit int) *markov.Chain {
+	// get comments from user
+	comments := make(chan []string)
+	go getAllComments(comments, user, pageLimit)
+
+	// build chain from comments got
+	chain := markov.NewChain(2)
+	for page := range comments {
+		for _, comment := range page {
+			reader := strings.NewReader(comment)
+			chain.Build(reader)
+		}
+	}
+
+	// Save chain for fast lookup later
+	var db data.DBClient = data.NewMongoClient()
+	db.UpsertChain(user, chain)
+
+	return chain
 }
 
 // getAllComments makes requests to all (or pageLimit) pages of comments
