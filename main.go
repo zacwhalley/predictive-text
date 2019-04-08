@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,10 +12,9 @@ import (
 
 func main() {
 	//get user from input
-	user, wordCount, pageLimit, err := getArgs()
+	user, wordCount, pageLimit, refresh, err := getArgs()
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Printf("How to use: reddit-simulator userName wordCount pageLimit (optional)")
 	}
 
 	var chain *markov.Chain
@@ -25,7 +22,7 @@ func main() {
 	chainResult := db.GetChain(user)
 
 	// See if valid chain already exists
-	if chainResult != nil {
+	if chainResult != nil && !refresh {
 		// Chain already exists and is valid
 		chain = chainResult.Chain
 	} else {
@@ -36,30 +33,6 @@ func main() {
 	// Generate text from the chain
 	rand.Seed(time.Now().UnixNano())
 	fmt.Println(chain.Generate(wordCount))
-}
-
-// getArgs
-func getArgs() (string, int, int, error) {
-	numArgs := len(os.Args)
-	if numArgs < 3 {
-		return "", -1, -1, fmt.Errorf("Expected %v or more arguments but received %v",
-			2, len(os.Args)-1)
-	}
-
-	wordCount, err := strconv.Atoi(os.Args[2])
-	if err != nil {
-		return "", -1, -1, fmt.Errorf("Length argument must be an integer")
-	}
-
-	var pageLimit int
-	if numArgs > 3 {
-		pageLimit, err = strconv.Atoi(os.Args[3])
-		if err != nil {
-			return "", -1, -1, fmt.Errorf("Page limit argument must be an integer")
-		}
-	}
-
-	return os.Args[1], wordCount, pageLimit, nil
 }
 
 func buildChain(user string, pageLimit int) *markov.Chain {
