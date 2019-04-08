@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -50,7 +49,6 @@ func (m MongoClient) GetChain(userName string) *UserChainDao {
 	err := findResult.Decode(result)
 	if err != nil {
 		// No document was found
-		fmt.Printf("Returning nothing from find chain")
 		return nil
 	}
 
