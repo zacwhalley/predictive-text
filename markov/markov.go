@@ -59,9 +59,12 @@ func (c *Chain) Build(r io.Reader) {
 			break
 		}
 		s = filter(s)
-		key := p.toString()
-		c.Chain[key] = append(c.Chain[key], s)
-		p.shift(s)
+		if s != "" {
+			// If s was filtered out
+			key := p.toString()
+			c.Chain[key] = append(c.Chain[key], s)
+			p.shift(s)
+		}
 	}
 }
 
@@ -75,6 +78,10 @@ func (c *Chain) Generate(n int) string {
 		for len(choices) == 0 {
 			// No more options. Shorten prefix
 			p.reduce()
+			next := p.toString()
+			if next == "" {
+				next = " "
+			}
 			choices = c.Chain[p.toString()]
 		}
 		next = choices[rand.Intn(len(choices))]
@@ -92,14 +99,22 @@ func (c *Chain) Generate(n int) string {
 
 // filter removes non-word characters, and converts to lowercase
 func filter(s string) string {
+	linkPattern := `[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?`
+	specCharPattern := `[^a-zA-Z0-9 ']`
+
+	s = removeMatch(s, linkPattern)
+	s = removeMatch(s, specCharPattern) // remove links, the special characters
+	return strings.ToLower(s)
+}
+
+// removeMatch removes all substrings in s that match pattern
+func removeMatch(s, pattern string) string {
 	// Remove all characters that are not part of words
-	symPattern := `[^a-zA-Z0-9 ']`
-	symRegex, err := regexp.Compile(symPattern)
+	regex, err := regexp.Compile(pattern)
 	if err != nil {
 		panic(err)
 	}
-	s = symRegex.ReplaceAllString(s, "")
 
-	// Convert to lowercase
-	return strings.ToLower(s)
+	s = regex.ReplaceAllString(s, "")
+	return s
 }
