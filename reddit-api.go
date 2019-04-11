@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -36,6 +37,10 @@ func (r redditAPIClient) getUserComments(username string, pageRef string) ([]str
 	res, err := client.Do(req)
 	if err != nil {
 		panic(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		log.Fatalf("Could not get user %s\n", username)
 	}
 
 	// decode response and convert json objects to simple array of comments
