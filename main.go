@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ func main() {
 	//get user from input
 	user, wordCount, pageLimit, refresh, err := getArgs()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	var chain *markov.Chain
