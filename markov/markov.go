@@ -1,7 +1,5 @@
 package markov
 
-// modified from https://golang.org/doc/codewalk/markov/
-
 import (
 	"bufio"
 	"fmt"
