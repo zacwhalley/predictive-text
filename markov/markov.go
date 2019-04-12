@@ -16,13 +16,20 @@ type prefix []string
 
 // toString returns the prefix as a string (for use as a map key)
 func (p prefix) toString() string {
-	return strings.Join(p, " ")
+	s := strings.Join(p, " ")
+
+	return clean(s)
 }
 
 // Shift removes the first word from the prefix and appends the given word
 func (p prefix) shift(word string) {
-	copy(p, p[1:])
-	p[len(p)-1] = word
+	if false {
+		// word ends with one of ?.! -> end of sentence
+		p.clear()
+	} else {
+		copy(p, p[1:])
+		p[len(p)-1] = clean(word)
+	}
 }
 
 // Remove the last non-empty word from the prefix with ""
@@ -33,6 +40,11 @@ func (p prefix) reduce() {
 			break
 		}
 	}
+}
+
+// clear removes all words from the prefix
+func (p prefix) clear() {
+	p = make([]string, len(p))
 }
 
 // Chain contains a map ("chain") of prefixes to a list of suffixes
@@ -68,23 +80,27 @@ func (c *Chain) Build(r io.Reader) {
 	}
 }
 
+func (c *Chain) getWord(key string) string {
+	key = clean(key)
+	choices := c.Chain[key]
+	if len(choices) == 0 {
+		return ""
+	}
+
+	return choices[rand.Intn(len(choices))]
+}
+
 // Generate returns a string of n words generated from the chain
 func (c *Chain) Generate(n int) string {
 	p := make(prefix, c.PrefixLen)
 	var words []string
-	var next string
 	for i := 0; i < n; i++ {
-		choices := c.Chain[p.toString()]
-		for len(choices) == 0 {
+		next := c.getWord(p.toString())
+		for next == "" {
 			// No more options. Shorten prefix
 			p.reduce()
-			next := p.toString()
-			if next == "" {
-				next = " "
-			}
-			choices = c.Chain[p.toString()]
+			next = c.getWord(p.toString())
 		}
-		next = choices[rand.Intn(len(choices))]
 		words = append(words, next)
 		p.shift(next)
 	}
@@ -97,14 +113,29 @@ func (c *Chain) Generate(n int) string {
 	return strings.Join(words, " ")
 }
 
-// filter removes non-word characters, and converts to lowercase
+// filter removes links and unwanted punctuation
 func filter(s string) string {
 	linkPattern := `[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?`
-	specCharPattern := `[^a-zA-Z0-9 ']`
+	specCharPattern := `[^a-zA-Z0-9 '!?\.,]`
 
 	s = removeMatch(s, linkPattern)
-	s = removeMatch(s, specCharPattern) // remove links, the special characters
-	return strings.ToLower(s)
+	s = removeMatch(s, specCharPattern)
+
+	return s
+}
+
+// clean removes punctuation from a string for use as a key
+func clean(s string) string {
+	specCharPattern := `[^a-zA-Z0-9]`
+	s = removeMatch(s, specCharPattern)
+	s = strings.ToLower(s)
+	s = strings.Trim(s, " ")
+
+	if s == "" {
+		s = " "
+	}
+
+	return s
 }
 
 // removeMatch removes all substrings in s that match pattern
