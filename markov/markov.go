@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"regexp"
 	"strings"
+
+	"github.com/zacwhalley/reddit-simulator/util"
 )
 
 // Prefix is a markov chain prefix of one of more words
@@ -18,18 +19,23 @@ type prefix []string
 func (p prefix) toString() string {
 	s := strings.Join(p, " ")
 
-	return clean(s)
+	return util.Clean(s)
+}
+
+func (p prefix) last() string {
+	return p[len(p)-1]
 }
 
 // Shift removes the first word from the prefix and appends the given word
 func (p prefix) shift(word string) {
-	if false {
+	endChars := []string{".", "!", "?"}
+	if util.DoesEndWith(p.last(), endChars) {
 		// word ends with one of ?.! -> end of sentence
 		p.clear()
 	} else {
 		copy(p, p[1:])
-		p[len(p)-1] = clean(word)
 	}
+	p[len(p)-1] = util.Clean(word)
 }
 
 // Remove the last non-empty word from the prefix with ""
@@ -70,7 +76,7 @@ func (c *Chain) Build(r io.Reader) {
 		if _, err := fmt.Fscan(br, &s); err != nil {
 			break
 		}
-		s = filter(s)
+		s = util.Filter(s)
 		if s != "" {
 			// If s was filtered out
 			key := p.toString()
@@ -81,7 +87,7 @@ func (c *Chain) Build(r io.Reader) {
 }
 
 func (c *Chain) getWord(key string) string {
-	key = clean(key)
+	key = util.Clean(key)
 	choices := c.Chain[key]
 	if len(choices) == 0 {
 		return ""
@@ -111,41 +117,4 @@ func (c *Chain) Generate(n int) string {
 	}
 
 	return strings.Join(words, " ")
-}
-
-// filter removes links and unwanted punctuation
-func filter(s string) string {
-	linkPattern := `[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?`
-	specCharPattern := `[^a-zA-Z0-9 '!?\.,]`
-
-	s = removeMatch(s, linkPattern)
-	s = removeMatch(s, specCharPattern)
-
-	return s
-}
-
-// clean removes punctuation from a string for use as a key
-func clean(s string) string {
-	specCharPattern := `[^a-zA-Z0-9]`
-	s = removeMatch(s, specCharPattern)
-	s = strings.ToLower(s)
-	s = strings.Trim(s, " ")
-
-	if s == "" {
-		s = " "
-	}
-
-	return s
-}
-
-// removeMatch removes all substrings in s that match pattern
-func removeMatch(s, pattern string) string {
-	// Remove all characters that are not part of words
-	regex, err := regexp.Compile(pattern)
-	if err != nil {
-		panic(err)
-	}
-
-	s = regex.ReplaceAllString(s, "")
-	return s
 }
