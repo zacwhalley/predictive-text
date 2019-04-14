@@ -29,7 +29,7 @@ func Filter(s string) string {
 
 // Clean removes punctuation from a string for use as a key
 func Clean(s string) string {
-	specCharPattern := `[^a-zA-Z0-9]`
+	specCharPattern := `[^a-zA-Z0-9 ]`
 	s = RemoveMatch(s, specCharPattern)
 	s = strings.Trim(s, " ")
 
