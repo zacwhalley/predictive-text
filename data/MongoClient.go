@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -17,11 +18,11 @@ type MongoClient struct {
 }
 
 // NewMongoClient creates a new client and establishes a connection to a mongo database
-func NewMongoClient() *MongoClient {
+func NewMongoClient(uri string) *MongoClient {
 	newClient := &MongoClient{}
-	options := options.Client().ApplyURI("mongodb://localhost:27017")
-	var err error
+	options := options.Client().ApplyURI(uri)
 
+	var err error
 	newClient.client, err = mongo.Connect(context.TODO(), options)
 	if err != nil {
 		log.Fatal(err)
@@ -31,9 +32,9 @@ func NewMongoClient() *MongoClient {
 }
 
 // GetChain gets the chain for the user userName
-func (m MongoClient) GetChain(userName string) *UserChainDao {
+func (m MongoClient) GetChain(userName string) (*UserChainDao, error) {
 	if m.client == nil {
-		log.Fatal("No connection to MongoDB")
+		return nil, errors.New("No connection to MongoDB")
 	}
 
 	chains := m.client.Database("redditSim").Collection("chain")
@@ -43,22 +44,22 @@ func (m MongoClient) GetChain(userName string) *UserChainDao {
 
 	findResult := chains.FindOne(context.TODO(), filter, options)
 	if err := findResult.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	err := findResult.Decode(result)
 	if err != nil {
 		// No document was found
-		return nil
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 // UpsertChain upserts the chain for a user
-func (m MongoClient) UpsertChain(userName string, chain *markov.Chain) {
+func (m MongoClient) UpsertChain(userName string, chain *markov.Chain) error {
 	if m.client == nil {
-		log.Fatal("No connection to MongoDB")
+		return errors.New("No connection to MongoDB")
 	}
 
 	// Get chain collection from redditSim db
@@ -73,6 +74,8 @@ func (m MongoClient) UpsertChain(userName string, chain *markov.Chain) {
 
 	_, err := chains.UpdateOne(context.TODO(), filter, update, options)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
