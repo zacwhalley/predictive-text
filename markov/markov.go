@@ -93,26 +93,3 @@ func (c *Chain) getWord(key string) string {
 
 	return choices[rand.Intn(len(choices))]
 }
-
-// Generate returns a string of n words generated from the chain
-func (c *Chain) Generate(n int) string {
-	p := make(prefix, c.PrefixLen)
-	var words []string
-	for i := 0; i < n; i++ {
-		next := c.getWord(p.toString())
-		for next == "" {
-			// No more options. Shorten prefix
-			p.reduce()
-			next = c.getWord(p.toString())
-		}
-		words = append(words, next)
-		p.shift(next)
-	}
-
-	// Capitalize first word
-	if len(words) != 0 {
-		words[0] = strings.Title(words[0])
-	}
-
-	return strings.Join(words, " ")
-}
