@@ -36,7 +36,7 @@ func setCommands(app *cli.App) {
 					return err
 				}
 
-				username := c.Args().Get(0)
+				username := strings.ToLower(c.Args().Get(0))
 				pageLimit := 0
 				if c.NArg() > 1 {
 					// pageLimit is optional
@@ -64,6 +64,11 @@ func setCommands(app *cli.App) {
 					Name:  "words",
 					Usage: "Generate specified number of words instead of sentences",
 				},
+				cli.StringFlag{
+					Name:  "startWith",
+					Usage: "Begin the generation with a given phrase",
+					Value: "",
+				},
 			},
 			Usage: "Write a comment for a specified user",
 			Action: func(c *cli.Context) error {
@@ -71,7 +76,8 @@ func setCommands(app *cli.App) {
 					return err
 				}
 
-				username := c.Args().Get(0)
+				// Get required arguments
+				username := strings.ToLower(c.Args().Get(0))
 				length, err := strconv.Atoi(c.Args().Get(1))
 				if err != nil {
 					return err
@@ -79,11 +85,14 @@ func setCommands(app *cli.App) {
 					return errors.New("length must be greater than 0")
 				}
 
+				// Optional arguments
+				beginning := strings.TrimSpace(c.String("startWith"))
+
 				var generator markov.Generator
 				if c.Bool("words") {
-					generator = markov.WordGenerator{}
+					generator = markov.WordGenerator{Beginning: beginning}
 				} else {
-					generator = markov.SentenceGenerator{}
+					generator = markov.SentenceGenerator{Beginning: beginning}
 				}
 				err = write(username, length, generator)
 				return err
