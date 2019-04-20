@@ -59,7 +59,13 @@ func setCommands(app *cli.App) {
 		{
 			Name:    "write",
 			Aliases: []string{"w"},
-			Usage:   "Write a comment for a specified user",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "words",
+					Usage: "Generate specified number of words instead of sentences",
+				},
+			},
+			Usage: "Write a comment for a specified user",
 			Action: func(c *cli.Context) error {
 				if err := validateArgs(2, c); err != nil {
 					return err
@@ -73,7 +79,13 @@ func setCommands(app *cli.App) {
 					return errors.New("length must be greater than 0")
 				}
 
-				err = write(username, length)
+				var generator markov.Generator
+				if c.Bool("words") {
+					generator = markov.WordGenerator{}
+				} else {
+					generator = markov.SentenceGenerator{}
+				}
+				err = write(username, length, generator)
 				return err
 			},
 		},
@@ -107,7 +119,7 @@ func build(username string, pageLimit int) error {
 	return err
 }
 
-func write(username string, length int) error {
+func write(username string, length int, generator markov.Generator) error {
 	chainResult, err := db.GetChain(username)
 	if chainResult == nil {
 		return fmt.Errorf(`User does not exist. Please `+
@@ -120,7 +132,7 @@ func write(username string, length int) error {
 
 	// Generate text from the chain
 	rand.Seed(time.Now().UnixNano())
-	fmt.Println(chain.Generate(length))
+	fmt.Println(generator.Generate(chain, length))
 
 	return nil
 }
