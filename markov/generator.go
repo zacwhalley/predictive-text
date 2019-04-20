@@ -19,25 +19,14 @@ type SentenceGenerator struct{}
 
 // Generate returns a randomly generated length n sequence of words
 func (g WordGenerator) Generate(c *Chain, n int) string {
-	p := make(prefix, c.PrefixLen)
-	var words []string
-	for i := 0; i < n; i++ {
-		next := c.getWord(p.toString())
-		for next == "" {
-			// No more options. Shorten prefix
-			p.reduce()
-			next = c.getWord(p.toString())
-		}
-		words = append(words, next)
-		p.shift(next)
+	var sentences []string
+	for n > 0 {
+		sentence, numWritten := makeSentence(c, n)
+		n -= numWritten
+		sentences = append(sentences, sentence)
 	}
 
-	// Capitalize first word
-	if len(words) != 0 {
-		words[0] = strings.Title(words[0])
-	}
-
-	return strings.Join(words, " ")
+	return strings.Join(sentences, " ")
 }
 
 // Generate returns a randomly generated length n sequence of sentences
@@ -46,17 +35,18 @@ func (g SentenceGenerator) Generate(c *Chain, n int) string {
 
 	// Generate words until a sentence is produced
 	for i := 0; i < n; i++ {
-		sentence := makeSentence(c)
+		sentence, _ := makeSentence(c, 0)
 		sentences = append(sentences, sentence)
 	}
 
 	return strings.Join(sentences, " ")
 }
 
-func makeSentence(c *Chain) string {
+func makeSentence(c *Chain, wordLimit int) (string, int) {
+	limit := wordLimit != 0
 	p := make(prefix, c.PrefixLen)
 	var words []string
-	for {
+	for i := 0; i < wordLimit || !limit; i++ {
 		next := c.getWord(p.toString())
 		for next == "" {
 			// No more options. Shorten prefix
@@ -76,5 +66,5 @@ func makeSentence(c *Chain) string {
 		words[0] = strings.Title(words[0])
 	}
 
-	return strings.Join(words, " ")
+	return strings.Join(words, " "), len(words)
 }
