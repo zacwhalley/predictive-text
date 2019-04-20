@@ -5,6 +5,21 @@ import (
 	"strings"
 )
 
+// EndsSentence returns true if s ends with a ./!/? and is not
+// a common word like Mr. or Dr.
+func EndsSentence(s string) bool {
+	// check for matches against common abbreviations
+	abbrevs := []string{"mr.", "mrs.", "ms.", "etc.", "jr.", "sr.", "dr."}
+	for _, val := range abbrevs {
+		if val == strings.ToLower(s) {
+			return false
+		}
+	}
+
+	// check for matches against cases that would end a sentence
+	return DoesEndWith(s, []string{".", "!", "?"})
+}
+
 // DoesEndWith returns true if s has any string from match as a suffix
 func DoesEndWith(s string, match []string) bool {
 	for _, pattern := range match {

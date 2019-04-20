@@ -54,7 +54,7 @@ func makeSentence(c *Chain, wordLimit int) (string, int) {
 			next = c.getWord(p.toString())
 		}
 		words = append(words, next)
-		if util.DoesEndWith(next, []string{".", "!", "?"}) {
+		if util.EndsSentence(next) {
 			// End of a sentence has been added
 			break
 		}

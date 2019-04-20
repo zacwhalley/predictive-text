@@ -26,8 +26,7 @@ func (p prefix) last() string {
 
 // Shift removes the first word from the prefix and appends the given word
 func (p prefix) shift(word string) {
-	endChars := []string{".", "!", "?"}
-	if util.DoesEndWith(p.last(), endChars) {
+	if util.EndsSentence(p.last()) {
 		// word ends with one of ?.! -> end of sentence
 		p.clear()
 	} else {
