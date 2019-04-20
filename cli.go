@@ -14,7 +14,6 @@ import (
 
 func initApp(app *cli.App) {
 	setInfo(app)
-	setFlags(app)
 	setCommands(app)
 }
 
@@ -23,15 +22,6 @@ func setInfo(app *cli.App) {
 	app.Usage = "A CLI for generating comments for Reddit users"
 	app.Author = "Zac Whalley"
 	app.Version = "1.0.0"
-}
-
-func setFlags(app *cli.App) {
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:  "words",
-			Usage: "Generate specified number of words instead of sentences",
-		},
-	}
 }
 
 func setCommands(app *cli.App) {
@@ -69,7 +59,13 @@ func setCommands(app *cli.App) {
 		{
 			Name:    "write",
 			Aliases: []string{"w"},
-			Usage:   "Write a comment for a specified user",
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "words",
+					Usage: "Generate specified number of words instead of sentences",
+				},
+			},
+			Usage: "Write a comment for a specified user",
 			Action: func(c *cli.Context) error {
 				if err := validateArgs(2, c); err != nil {
 					return err
