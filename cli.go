@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -30,29 +32,24 @@ func setCommands(app *cli.App) {
 			Name:    "build",
 			Aliases: []string{"b"},
 			Usage:   "Build the data needed to generate comments for a user",
+			Flags: []cli.Flag{
+				cli.IntFlag{
+					Name:  "pageLimit",
+					Value: 0,
+				},
+			},
 			Action: func(c *cli.Context) error {
-				var err error
-				if err = validateArgs(1, c); err != nil {
+				pageLimit := c.Int("pageLimit")
+				if pageLimit < 0 {
+					return errors.New("pageLimit must be greater than 0")
+				}
+
+				users := readUsers()
+
+				fmt.Println("Done getting user names. Please wait for data to generate.")
+				if err := buildChain(users, pageLimit); err != nil {
 					return err
 				}
-
-				username := strings.ToLower(c.Args().Get(0))
-				pageLimit := 0
-				if c.NArg() > 1 {
-					// pageLimit is optional
-					pageLimit, err = strconv.Atoi(c.Args().Get(1))
-					if err != nil {
-						return err
-					} else if pageLimit < 0 {
-						return errors.New("pageLimit must be greater than 0")
-					}
-				}
-
-				if err = build(username, pageLimit); err != nil {
-					return err
-				}
-
-				fmt.Printf("Data for %s successfully generated.\n", username)
 				return nil
 			},
 		},
@@ -72,13 +69,13 @@ func setCommands(app *cli.App) {
 			},
 			Usage: "Write a comment for a specified user",
 			Action: func(c *cli.Context) error {
-				if err := validateArgs(2, c); err != nil {
+				if err := validateArgs(1, c); err != nil {
 					return err
 				}
 
 				// Get required arguments
-				username := strings.ToLower(c.Args().Get(0))
-				length, err := strconv.Atoi(c.Args().Get(1))
+				users := readUsers()
+				length, err := strconv.Atoi(c.Args().Get(0))
 				if err != nil {
 					return err
 				} else if length < 0 {
@@ -94,7 +91,7 @@ func setCommands(app *cli.App) {
 				} else {
 					generator = markov.SentenceGenerator{Beginning: beginning}
 				}
-				err = write(username, length, generator)
+				err = write(users, length, generator)
 				return err
 			},
 		},
@@ -109,46 +106,29 @@ func validateArgs(argNum int, c *cli.Context) error {
 	return nil
 }
 
-func build(username string, pageLimit int) error {
-	// get comments from username
-	comments := make(chan []string)
-	go getAllComments(comments, username, pageLimit)
+// readUserNames reads an arbitrary number of usernames from standard input
+func readUsers() []string {
+	var users []string
+	var line string
 
-	// build chain from comments got
-	chain := markov.NewChain(2)
-	for page := range comments {
-		for _, comment := range page {
-			reader := strings.NewReader(comment)
-			chain.Build(reader)
+	// prompt user
+	fmt.Println("Please enter the names of the users you want to use.")
+
+	// read all words from stdin
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		line = scanner.Text()
+		for _, word := range strings.Fields(line) {
+			users = append(users, word)
 		}
 	}
 
-	// Save chain for fast lookup later
-	err := db.UpsertChain(username, chain)
-	return err
+	return users
 }
 
-func write(username string, length int, generator markov.Generator) error {
-	chainResult, err := db.GetChain(username)
-	if chainResult == nil {
-		return fmt.Errorf(`User does not exist. Please `+
-			`run "build %s pageLimit" to generate data for the user`, username)
-	} else if err != nil {
-		return err
-	}
-
-	chain := chainResult.Chain
-
-	// Generate text from the chain
-	rand.Seed(time.Now().UnixNano())
-	fmt.Println(generator.Generate(chain, length))
-
-	return nil
-}
-
-// getAllComments makes requests to all (or pageLimit) pages of comments
+// getUserComments makes requests to all (or pageLimit) pages of comments
 // and sends them to the comments channel
-func getAllComments(comments chan<- []string, user string, pageLimit int) {
+func getUserComments(comments chan<- []string, user string, pageLimit int) {
 	api := redditAPIClient{}
 	pageRef := ""
 	var page []string
@@ -160,5 +140,54 @@ func getAllComments(comments chan<- []string, user string, pageLimit int) {
 			break
 		}
 	}
+}
+
+// getAllComments gets up to pageLimit comments for each user in users and
+// passes it to the comments channel
+func getAllComments(users []string, pageLimit int, comments chan []string) {
+	for _, user := range users {
+		// get comments from user
+		getUserComments(comments, user, pageLimit)
+		fmt.Printf("Data for %s found.\n", user)
+	}
 	close(comments)
+}
+
+func buildChain(users []string, pageLimit int) error {
+	comments := make(chan []string)
+	go getAllComments(users, pageLimit, comments)
+
+	// build chain from comments got
+	chain := markov.NewChain(2)
+	for page := range comments {
+		for _, comment := range page {
+			reader := strings.NewReader(comment)
+			chain.Build(reader)
+		}
+	}
+
+	// Save chain for fast lookup later
+	err := db.UpsertChain(users, chain)
+	if err == nil {
+		fmt.Println("Data for all users has been generated.")
+	}
+	return err
+}
+
+func write(users []string, length int, generator markov.Generator) error {
+	chainResult, err := db.GetChain(users)
+	if chainResult == nil {
+		return fmt.Errorf(`User does not exist. Please `+
+			`run "build %v --pageLimit=N" to generate data for the users`, users)
+	} else if err != nil {
+		return err
+	}
+
+	chain := chainResult.Chain
+
+	// Generate text from the chain
+	rand.Seed(time.Now().UnixNano())
+	fmt.Println(generator.Generate(chain, length))
+
+	return nil
 }
