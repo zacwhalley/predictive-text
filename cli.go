@@ -12,6 +12,7 @@ import (
 
 	"github.com/urfave/cli"
 	"github.com/zacwhalley/reddit-simulator/markov"
+	"github.com/zacwhalley/reddit-simulator/util"
 )
 
 func initApp(app *cli.App) {
@@ -128,34 +129,56 @@ func readUsers() []string {
 
 // getUserComments makes requests to all (or pageLimit) pages of comments
 // and sends them to the comments channel
-func getUserComments(comments chan<- []string, user string, pageLimit int) {
+func getUserComments(comments chan<- []string, usernames <-chan string,
+	done chan<- bool, pageLimit int) {
+
 	api := redditAPIClient{}
 	pageRef := ""
 	var page []string
-	// loop through all pages if no pagelimit specified
-	for i := 0; i < pageLimit || pageLimit <= 0; i++ {
-		page, pageRef = api.getUserComments(user, pageRef)
-		comments <- page
-		if pageRef == "" {
-			break
+	for username := range usernames {
+		fmt.Printf("Getting data for user %s\n", username)
+		// pageLimit <= 0 means no limit has been specified
+		for i := 0; i < pageLimit || pageLimit <= 0; i++ {
+			page, pageRef = api.getUserComments(username, pageRef)
+			comments <- page
+			if pageRef == "" {
+				break
+			}
 		}
+		fmt.Printf("Done getting data for user %s\n", username)
+		done <- true
 	}
 }
 
 // getAllComments gets up to pageLimit comments for each user in users and
 // passes it to the comments channel
-func getAllComments(users []string, pageLimit int, comments chan []string) {
-	for _, user := range users {
-		// get comments from user
-		getUserComments(comments, user, pageLimit)
-		fmt.Printf("Data for %s found.\n", user)
+func getAllComments(users []string, pageLimit int, comments chan<- []string) {
+	// create an arbitrary number of workers to get the comments
+	// see https://gobyexample.com/worker-pools
+	usernames := make(chan string)
+	done := make(chan bool)
+	numWorkers := util.MinInt(len(users), 10)
+	for i := 0; i < numWorkers; i++ {
+		go getUserComments(comments, usernames, done, pageLimit)
 	}
+
+	for _, user := range users {
+		usernames <- user
+	}
+	close(usernames)
+
+	// close comments channel after data for all users has been collected
+	for i := 0; i < len(users); i++ {
+		<-done
+		fmt.Println(i + 1)
+	}
+	fmt.Println("Done getting data for all users")
 	close(comments)
 }
 
 func buildChain(users []string, pageLimit int) error {
-	comments := make(chan []string)
-	go getAllComments(users, pageLimit, comments)
+	comments := make(chan []string, 100)
+	getAllComments(users, pageLimit, comments)
 
 	// build chain from comments got
 	chain := markov.NewChain(2)
@@ -169,7 +192,7 @@ func buildChain(users []string, pageLimit int) error {
 	// Save chain for fast lookup later
 	err := db.UpsertChain(users, chain)
 	if err == nil {
-		fmt.Println("Data for all users has been generated.")
+		fmt.Println("Save successful.")
 	}
 	return err
 }
@@ -177,8 +200,8 @@ func buildChain(users []string, pageLimit int) error {
 func write(users []string, length int, generator markov.Generator) error {
 	chainResult, err := db.GetChain(users)
 	if chainResult == nil {
-		return fmt.Errorf(`User does not exist. Please `+
-			`run "build %v --pageLimit=N" to generate data for the users`, users)
+		return fmt.Errorf(`No data found. Please run "build --pageLimit=N" ` +
+			`to generate data for the users`)
 	} else if err != nil {
 		return err
 	}

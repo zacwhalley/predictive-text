@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"sort"
 	"time"
@@ -67,6 +68,7 @@ func (m MongoClient) UpsertChain(users []string, chain *markov.Chain) error {
 
 	sort.Strings(users)
 
+	fmt.Printf("Saving data for %v\n", users)
 	// Get chain collection from redditSim db
 	chains := m.client.Database("redditSim").Collection("chain")
 	userChain := UserChainDao{users, chain, time.Now()}
