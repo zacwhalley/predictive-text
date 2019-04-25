@@ -129,35 +129,37 @@ func readUsers() []string {
 
 // getUserComments makes requests to all (or pageLimit) pages of comments
 // and sends them to the comments channel
-func getUserComments(comments chan<- []string, usernames <-chan string,
+func getUserComments(comments chan<- [][]string, usernames <-chan string,
 	done chan<- bool, pageLimit int) {
 
+	var userComments [][]string
+	var page []string
 	api := redditAPIClient{}
 	pageRef := ""
-	var page []string
 	for username := range usernames {
 		fmt.Printf("Getting data for user %s\n", username)
 		// pageLimit <= 0 means no limit has been specified
 		for i := 0; i < pageLimit || pageLimit <= 0; i++ {
 			page, pageRef = api.getUserComments(username, pageRef)
-			comments <- page
+			userComments = append(userComments, page)
 			if pageRef == "" {
 				break
 			}
 		}
 		fmt.Printf("Done getting data for user %s\n", username)
+		comments <- userComments
 		done <- true
 	}
 }
 
 // getAllComments gets up to pageLimit comments for each user in users and
 // passes it to the comments channel
-func getAllComments(users []string, pageLimit int, comments chan<- []string) {
+func getAllComments(users []string, pageLimit int, comments chan<- [][]string) {
 	// create an arbitrary number of workers to get the comments
 	// see https://gobyexample.com/worker-pools
-	usernames := make(chan string)
-	done := make(chan bool)
-	numWorkers := util.MinInt(len(users), 10)
+	usernames := make(chan string, len(users))
+	numWorkers := util.MinInt(len(users), 3)
+	done := make(chan bool, len(users))
 	for i := 0; i < numWorkers; i++ {
 		go getUserComments(comments, usernames, done, pageLimit)
 	}
@@ -170,22 +172,23 @@ func getAllComments(users []string, pageLimit int, comments chan<- []string) {
 	// close comments channel after data for all users has been collected
 	for i := 0; i < len(users); i++ {
 		<-done
-		fmt.Println(i + 1)
 	}
 	fmt.Println("Done getting data for all users")
 	close(comments)
 }
 
 func buildChain(users []string, pageLimit int) error {
-	comments := make(chan []string, 100)
+	comments := make(chan [][]string, 100)
 	getAllComments(users, pageLimit, comments)
 
 	// build chain from comments got
 	chain := markov.NewChain(2)
-	for page := range comments {
-		for _, comment := range page {
-			reader := strings.NewReader(comment)
-			chain.Build(reader)
+	for commentSet := range comments {
+		for _, page := range commentSet {
+			for _, comment := range page {
+				reader := strings.NewReader(comment)
+				chain.Build(reader)
+			}
 		}
 	}
 
