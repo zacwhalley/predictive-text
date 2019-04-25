@@ -8,7 +8,7 @@ import (
 
 // UserChainDao is the data access object for user chain objects
 type UserChainDao struct {
-	User         string
+	Users        []string
 	Chain        *markov.Chain
 	LastModified time.Time
 }

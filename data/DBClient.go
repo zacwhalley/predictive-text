@@ -6,6 +6,6 @@ import (
 
 // DBClient is an interface for database access
 type DBClient interface {
-	GetChain(userName string) (*UserChainDao, error)
-	UpsertChain(userName string, chain *markov.Chain) error
+	GetChain(users []string) (*UserChainDao, error)
+	UpsertChain(users []string, chain *markov.Chain) error
 }
