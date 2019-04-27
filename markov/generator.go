@@ -55,37 +55,25 @@ func makeSentence(c *Chain, wordLimit int, beginning string) (string, int) {
 	p := make(prefix, c.PrefixLen)
 
 	if len(beginning) > 0 {
-		// Find the last c.PrefixLen words in beginning
-		beginWords := strings.Split(beginning, " ")
-		beginSuffixPos := util.MaxInt(len(beginWords)-c.PrefixLen, 0)
-		prefixStart := beginWords[beginSuffixPos:]
-
-		// shift prefixStart words onto string
-		for _, word := range prefixStart {
-			p.shift(word)
-		}
-
-		// reduce until a word is found
-		next := c.getWord(p.toString())
-		for next == "" {
-			p.reduce()
-			next = c.getWord(p.toString())
-		}
-
-		if p.toString() == " " {
-			// beginning matches with nothing - don't print beginning
-		} else {
-			// Add the whole beginning to words if a single result was found
-			words = beginWords
-		}
+		initSentence(&words, &p, beginning, c)
 	}
 
 	for i := 0; i < wordLimit || !limit; i++ {
 		next := c.getWord(p.toString())
 		for next == "" {
+
 			// No more options. Shorten prefix
 			p.reduce()
-			next = c.getWord(p.toString())
+			if !p.isEmpty() {
+				next = c.getWord(p.toString())
+			} else {
+				// no words found be shortening - end sentence
+				if len(words) > 0 {
+					words[len(words)-1] += "."
+				}
+
+				return strings.Join(words, " "), len(words)
+			}
 		}
 		words = append(words, next)
 		if util.EndsSentence(next) {
@@ -96,4 +84,30 @@ func makeSentence(c *Chain, wordLimit int, beginning string) (string, int) {
 	}
 
 	return strings.Join(words, " "), len(words)
+}
+
+func initSentence(words *[]string, p *prefix, beginning string, c *Chain) {
+	// Find the last c.PrefixLen words in beginning
+	beginWords := strings.Split(beginning, " ")
+	beginSuffixPos := util.MaxInt(len(beginWords)-c.PrefixLen, 0)
+	prefixStart := beginWords[beginSuffixPos:]
+
+	// shift prefixStart words onto string
+	for _, word := range prefixStart {
+		p.shift(word)
+	}
+
+	// reduce until a word is found
+	next := c.getWord(p.toString())
+	for next == "" {
+		p.reduce()
+		next = c.getWord(p.toString())
+	}
+
+	if p.toString() == " " {
+		// beginning matches with nothing - don't print beginning
+	} else {
+		// Add the whole beginning to words if a single result was found
+		copy(*words, beginWords)
+	}
 }

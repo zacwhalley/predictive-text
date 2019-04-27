@@ -34,12 +34,10 @@ func DoesEndWith(s string, match []string) bool {
 // Filter removes links and unwanted punctuation
 func Filter(s string) string {
 	linkPattern := `[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?`
-	specCharPattern := `[^a-zA-Z0-9 '!?\.,]`
 	miscMarkdownPattern := `[&[a-zA-Z]+;]`
 
 	s = RemoveMatch(s, linkPattern)
 	s = RemoveMatch(s, miscMarkdownPattern)
-	s = RemoveMatch(s, specCharPattern)
 
 	return s
 }

@@ -50,6 +50,10 @@ func (p prefix) clear() {
 	p = make([]string, len(p))
 }
 
+func (p prefix) isEmpty() bool {
+	return p.toString() == " "
+}
+
 // Chain contains a map ("chain") of prefixes to a list of suffixes
 // A prefix is a string of prefixLen words joined with spaces
 // A suffix is a single word. A prefix can have multiple suffixes
