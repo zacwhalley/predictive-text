@@ -1,3 +1,3 @@
-# reddit-simulator
+# predictive-text
 
-Inspired by /r/subredditsimulator, reddit-simulator is a tool for generating new comments based on a user's comment history
+A predictive text service built on data from Reddit comments
