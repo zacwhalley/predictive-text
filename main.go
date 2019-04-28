@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/zacwhalley/reddit-simulator/data"
+	"github.com/zacwhalley/predictive-text/data"
 )
 
 var db data.DBClient = data.NewMongoClient("mongodb://localhost:27017")

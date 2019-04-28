@@ -52,7 +52,7 @@ func Clean(s string) string {
 		s = " "
 	}
 
-	return s
+	return strings.ToLower(s)
 }
 
 // RemoveMatch removes all substrings in s that match pattern

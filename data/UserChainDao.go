@@ -3,7 +3,7 @@ package data
 import (
 	"time"
 
-	"github.com/zacwhalley/reddit-simulator/markov"
+	"github.com/zacwhalley/predictive-text/markov"
 )
 
 // UserChainDao is the data access object for user chain objects

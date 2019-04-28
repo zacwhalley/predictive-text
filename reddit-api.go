@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zacwhalley/reddit-simulator/dto"
+	"github.com/zacwhalley/predictive-text/dto"
 )
 
 // ex request for comments: GET http://www.reddit.com/user/USERNAME/comments.json
@@ -25,7 +25,7 @@ func (r redditAPIClient) getUserComments(username string, pageRef string) ([]str
 	if err != nil {
 		panic(err)
 	}
-	req.Header.Set("User-Agent", "zw-reddit-simulator")
+	req.Header.Set("User-Agent", "zw-predictive-text")
 	// add requested page to query params of url
 	if pageRef != "" {
 		params := req.URL.Query()
