@@ -25,7 +25,7 @@ func initApp(app *cli.App) {
 func setInfo(app *cli.App) {
 	app.Name = "Reddit Simulator"
 	app.Usage = "A CLI for generating comments for Reddit users"
-	app.Author = "zwhalley"
+	app.Author = "Zac Whalley"
 	app.Version = "1.0.0"
 }
 
