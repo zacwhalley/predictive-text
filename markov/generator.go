@@ -3,7 +3,7 @@ package markov
 import (
 	"strings"
 
-	"github.com/zacwhalley/reddit-simulator/util"
+	"github.com/zacwhalley/predictive-text/util"
 )
 
 // Generator is an interface for generating strings with a chain
@@ -52,20 +52,20 @@ func makeSentence(c *Chain, wordLimit int, beginning string) (string, int) {
 	limit := wordLimit != 0
 	var words []string
 
-	p := make(prefix, c.PrefixLen)
+	p := make(Prefix, c.PrefixLen)
 
 	if len(beginning) > 0 {
 		initSentence(&words, &p, beginning, c)
 	}
 
 	for i := 0; i < wordLimit || !limit; i++ {
-		next := c.getWord(p.toString())
+		next := c.getWord(p.ToString())
 		for next == "" {
 
 			// No more options. Shorten prefix
-			p.reduce()
-			if !p.isEmpty() {
-				next = c.getWord(p.toString())
+			p.Reduce()
+			if !p.IsEmpty() {
+				next = c.getWord(p.ToString())
 			} else {
 				// no words found be shortening - end sentence
 				if len(words) > 0 {
@@ -80,13 +80,13 @@ func makeSentence(c *Chain, wordLimit int, beginning string) (string, int) {
 			// End of a sentence has been added
 			break
 		}
-		p.shift(next)
+		p.Shift(next)
 	}
 
 	return strings.Join(words, " "), len(words)
 }
 
-func initSentence(words *[]string, p *prefix, beginning string, c *Chain) {
+func initSentence(words *[]string, p *Prefix, beginning string, c *Chain) {
 	// Find the last c.PrefixLen words in beginning
 	beginWords := strings.Split(beginning, " ")
 	beginSuffixPos := util.MaxInt(len(beginWords)-c.PrefixLen, 0)
@@ -94,17 +94,17 @@ func initSentence(words *[]string, p *prefix, beginning string, c *Chain) {
 
 	// shift prefixStart words onto string
 	for _, word := range prefixStart {
-		p.shift(word)
+		p.Shift(word)
 	}
 
 	// reduce until a word is found
-	next := c.getWord(p.toString())
+	next := c.getWord(p.ToString())
 	for next == "" {
-		p.reduce()
-		next = c.getWord(p.toString())
+		p.Reduce()
+		next = c.getWord(p.ToString())
 	}
 
-	if p.toString() == " " {
+	if p.ToString() == " " {
 		// beginning matches with nothing - don't print beginning
 	} else {
 		// Add the whole beginning to words if a single result was found

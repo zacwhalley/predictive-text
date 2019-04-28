@@ -11,15 +11,17 @@ import (
 	"time"
 
 	"github.com/urfave/cli"
-	"github.com/zacwhalley/reddit-simulator/markov"
-	"github.com/zacwhalley/reddit-simulator/util"
+	"github.com/zacwhalley/predictive-text/markov"
+	"github.com/zacwhalley/predictive-text/util"
 )
 
+// initApp initializes the app with commands and info
 func initApp(app *cli.App) {
 	setInfo(app)
 	setCommands(app)
 }
 
+// setInfo sets basic info for use in the help command
 func setInfo(app *cli.App) {
 	app.Name = "Reddit Simulator"
 	app.Usage = "A CLI for generating comments for Reddit users"
@@ -27,6 +29,8 @@ func setInfo(app *cli.App) {
 	app.Version = "1.0.0"
 }
 
+// setCommands defines the commands build, write, and predict
+// and their options
 func setCommands(app *cli.App) {
 	app.Commands = []cli.Command{
 		{
@@ -48,7 +52,7 @@ func setCommands(app *cli.App) {
 				users := readUsers()
 
 				fmt.Println("Done getting user names. Please wait for data to generate.")
-				if err := buildChain(users, pageLimit); err != nil {
+				if err := build(users, pageLimit); err != nil {
 					return err
 				}
 				return nil
@@ -96,9 +100,41 @@ func setCommands(app *cli.App) {
 				return err
 			},
 		},
+		{
+			Name:    "predict",
+			Aliases: []string{"p"},
+			Usage:   "Output the input text combined with the n words most likely to come next",
+			Action: func(c *cli.Context) error {
+				n, err := strconv.Atoi(c.Args().Get(0))
+				if err != nil {
+					return err
+				}
+
+				// get input from stdin
+				reader := bufio.NewReader(os.Stdin)
+				fmt.Print("Enter text: ")
+				input, err := reader.ReadString('\n')
+				if err != nil {
+					return err
+				}
+				input = strings.TrimSpace(input)
+
+				predicted, err := predict(input, n)
+				if err != nil {
+					return err
+				}
+
+				for _, words := range predicted {
+					fmt.Printf("%s %s\n", input, words)
+				}
+
+				return nil
+			},
+		},
 	}
 }
 
+// validateArgs checks that the correct number of arguments has been given
 func validateArgs(argNum int, c *cli.Context) error {
 	if c.NArg() < argNum {
 		return fmt.Errorf("Expected %v arguments but received %v", 2, c.NArg())
@@ -177,7 +213,9 @@ func getAllComments(users []string, pageLimit int, comments chan<- [][]string) {
 	close(comments)
 }
 
-func buildChain(users []string, pageLimit int) error {
+// build builds and stores the data set for users
+// the implementation of the build command
+func build(users []string, pageLimit int) error {
 	comments := make(chan [][]string, 100)
 	getAllComments(users, pageLimit, comments)
 
@@ -200,6 +238,8 @@ func buildChain(users []string, pageLimit int) error {
 	return err
 }
 
+// write prints length words/sentences generated from the data for given users
+// implementation of the write command
 func write(users []string, length int, generator markov.Generator) error {
 	chainResult, err := db.GetChain(users)
 	if chainResult == nil {
@@ -216,4 +256,11 @@ func write(users []string, length int, generator markov.Generator) error {
 	fmt.Println(generator.Generate(chain, length))
 
 	return nil
+}
+
+// predict predicts the 3 most likely next n words for an input
+// implementation for the print command
+func predict(input string, n int) ([]string, error) {
+	result, err := db.GetPrediction(input, n)
+	return result, err
 }
