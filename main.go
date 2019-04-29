@@ -12,7 +12,7 @@ var db data.DBClient = data.NewMongoClient("mongodb://localhost:27017")
 
 func main() {
 	/*
-		Legacy CLI shit - do something with this...
+		Legacy CLI stuff
 		app := cli.NewApp()
 		initApp(app)
 

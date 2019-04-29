@@ -10,10 +10,6 @@ import (
 	"github.com/zacwhalley/predictive-text/dto"
 )
 
-// ex request for comments: GET http://www.reddit.com/user/USERNAME/comments.json
-// can get text from comment.data.body
-// no auth required
-
 type redditAPIClient struct {
 }
 
