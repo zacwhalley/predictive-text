@@ -44,7 +44,7 @@ func (r redditAPIClient) getUserComments(username string, pageRef string) ([]str
 	}
 
 	// decode response and convert json objects to simple array of comments
-	var page dtos.CommentsPageDto
+	var page dto.CommentsPageDto
 	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		panic(err)
 	}
