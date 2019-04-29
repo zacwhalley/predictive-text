@@ -1,4 +1,4 @@
-package dtos
+package dto
 
 // CommentsPageDto is the data transfer object for holding a user's comments
 type CommentsPageDto struct {

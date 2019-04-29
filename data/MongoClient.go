@@ -74,11 +74,11 @@ func (m MongoClient) GetPrediction(input string, n int) ([]string, error) {
 	// put last prefixLen words of input into prefix
 	copy(p, inputWords[util.MaxInt(0, len(inputWords)-prefixLen):])
 
-	var err error
 	for i := 0; i < numPredictions; i++ {
 		var newPrefix markov.Prefix = make([]string, len(p))
 		copy(newPrefix, p)
-		predictions[i], err = m.getMostCommon(newPrefix, n)
+		prediction, err := m.getMostCommon(newPrefix, n)
+		predictions[i] = strings.TrimSpace(prediction)
 		if err != nil {
 			return nil, err
 		}

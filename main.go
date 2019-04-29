@@ -2,20 +2,29 @@ package main
 
 import (
 	"log"
-	"os"
+	"net/http"
 
-	"github.com/urfave/cli"
+	"github.com/gorilla/mux"
 	"github.com/zacwhalley/predictive-text/data"
 )
 
 var db data.DBClient = data.NewMongoClient("mongodb://localhost:27017")
 
 func main() {
-	app := cli.NewApp()
-	initApp(app)
+	/*
+		Legacy CLI stuff
+		app := cli.NewApp()
+		initApp(app)
 
-	err := app.Run(os.Args)
-	if err != nil {
+		err := app.Run(os.Args)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
+
+	r := mux.NewRouter()
+	r.HandleFunc("/prediction", GetPrediction).Methods("GET")
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal(err)
 	}
 }

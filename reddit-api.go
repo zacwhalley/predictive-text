@@ -10,10 +10,6 @@ import (
 	"github.com/zacwhalley/predictive-text/dto"
 )
 
-// ex request for comments: GET http://www.reddit.com/user/USERNAME/comments.json
-// can get text from comment.data.body
-// no auth required
-
 type redditAPIClient struct {
 }
 
@@ -44,7 +40,7 @@ func (r redditAPIClient) getUserComments(username string, pageRef string) ([]str
 	}
 
 	// decode response and convert json objects to simple array of comments
-	var page dtos.CommentsPageDto
+	var page dto.CommentsPageDto
 	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		panic(err)
 	}
