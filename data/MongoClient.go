@@ -98,7 +98,7 @@ func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
 	}
 
 	chains := m.client.Database("redditSim").Collection("chain")
-	filter := bson.D{{Key: "users", Value: []string{"predict"}}}
+	filter := bson.D{{Key: "users", Value: bson.A{"predict"}}}
 	options := &options.FindOneOptions{}
 	options.Projection = bson.D{{Key: "chain.chain." + p.ToString(), Value: 1}}
 	result := &UserChainDao{}
