@@ -23,7 +23,7 @@ func main() {
 	*/
 
 	r := mux.NewRouter()
-	r.HandleFunc("/prediction", GetPrediction).Methods("GET")
+	r.HandleFunc("/prediction", GetPrediction).Methods("POST")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal(err)
 	}

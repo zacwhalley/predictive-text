@@ -12,7 +12,7 @@ type Prefix []string
 // ToString returns the Prefix as a string (for use as a map key)
 func (p Prefix) ToString() string {
 	s := strings.Join(p, " ")
-	return util.Clean(s)
+	return strings.ToLower(util.Clean(s))
 }
 
 // Last returns the last word in the prefix
