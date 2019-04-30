@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
+
 	"github.com/gorilla/mux"
 	"github.com/zacwhalley/predictive-text/data"
 )
@@ -23,8 +25,16 @@ func main() {
 	*/
 
 	r := mux.NewRouter()
-	r.HandleFunc("/prediction", GetPrediction).Methods("POST")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+	allowedMethods := handlers.AllowedMethods([]string{
+		http.MethodPost,
+	})
+
+	r.HandleFunc("/prediction", PostPredictionController).Methods(http.MethodPost)
+
+	err := http.ListenAndServe(":8080",
+		handlers.CORS(allowedOrigins, allowedMethods)(r))
+	if err != nil {
 		log.Fatal(err)
 	}
 }

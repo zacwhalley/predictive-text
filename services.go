@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zacwhalley/predictive-text/dto"
+
 	"github.com/zacwhalley/predictive-text/markov"
 	"github.com/zacwhalley/predictive-text/util"
 )
@@ -105,9 +107,19 @@ func write(users []string, length int, generator markov.Generator) error {
 	return nil
 }
 
-// predict predicts the 3 most likely next n words for an input
+// postPredictionSvc predicts the 3 most likely next n words for an input
 // implementation for the print command
-func predict(input string, n int) ([]string, error) {
-	result, err := db.GetPrediction(input, n)
-	return result, err
+func postPredictionSvc(input string) (dto.PredictionResponseDto, error) {
+	const numWords = 2 // default to <=2 words to predict
+	result, err := db.GetPrediction(input, numWords)
+	if err != nil {
+		return dto.PredictionResponseDto{}, err
+	}
+
+	response := dto.PredictionResponseDto{
+		Input:       input,
+		Predictions: result,
+	}
+
+	return response, nil
 }

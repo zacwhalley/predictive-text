@@ -16,15 +16,20 @@
 
     results.style.display = "none"
     inputBox.value = ""
-    okButton.addEventListener("click", okClick);
+    okButton.addEventListener("click", getPredictions);
+    inputBox.addEventListener('keydown', e => {
+      if (e.keyCode === 13) {
+        getPredictions();
+      }
+    });
   }
 
-  function okClick() {
+  function getPredictions() {
     // get text from input box
     const input = inputBox.value.trim();
 
     // mock call to get predictions
-    getPredictions(input).then(response => {
+    makePredictionRequest(input).then(response => {
       if (response.status === 200) {
         response.json().then(body => {
           // display predictions in result
@@ -56,7 +61,7 @@
     errorMessage.innerText = err.message
   }
 
-  function getPredictions(input) {
+  function makePredictionRequest(input) {
     const request = new Request("http://localhost:8080/prediction", {
       method: "POST",
       body: JSON.stringify({input: input}),
