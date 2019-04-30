@@ -78,6 +78,9 @@ func (m MongoClient) GetPrediction(input string, n int) ([]string, error) {
 		var newPrefix markov.Prefix = make([]string, len(p))
 		copy(newPrefix, p)
 		prediction, err := m.getMostCommon(newPrefix, n)
+		if err != nil {
+			return nil, err
+		}
 		predictions[i] = strings.TrimSpace(prediction)
 		if err != nil {
 			return nil, err
@@ -110,7 +113,9 @@ func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
 	}
 
 	// gets the list of suffixes for the given prefix
-	if len(result.Chain.Chain) < 1 {
+	if result.Chain == nil ||
+		result.Chain.Chain == nil ||
+		len(result.Chain.Chain) < 1 {
 		// prefix exists but no suffix available - return early
 		return "", nil
 	}
