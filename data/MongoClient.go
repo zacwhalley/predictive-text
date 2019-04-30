@@ -66,7 +66,7 @@ func (m MongoClient) GetChain(users []string) (*UserChainDao, error) {
 func (m MongoClient) GetPrediction(input string, n int) ([]string, error) {
 	const numPredictions = 1
 	const prefixLen = 2
-	predictions := make([]string, numPredictions)
+	var predictions []string
 	var p markov.Prefix = make([]string, prefixLen)
 
 	inputWords := strings.Split(input, " ")
@@ -81,7 +81,11 @@ func (m MongoClient) GetPrediction(input string, n int) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		predictions[i] = strings.TrimSpace(prediction)
+
+		prediction = strings.TrimSpace(prediction)
+		if prediction != "" {
+			predictions = append(predictions, prediction)
+		}
 		if err != nil {
 			return nil, err
 		}
