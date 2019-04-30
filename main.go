@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/handlers"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/zacwhalley/predictive-text/data"
 )
 
-var db data.DBClient = data.NewMongoClient("mongodb://localhost:27017")
+var db data.DBClient = data.NewMongoClient(os.Getenv("PREDTEXT_MONGODB_URI"))
 
 func main() {
 	/*
@@ -32,7 +33,8 @@ func main() {
 
 	r.HandleFunc("/prediction", PostPredictionController).Methods(http.MethodPost)
 
-	err := http.ListenAndServe(":8080",
+	port := ":" + os.Getenv("PREDTEXT_PORT")
+	err := http.ListenAndServe(port,
 		handlers.CORS(allowedOrigins, allowedMethods)(r))
 	if err != nil {
 		log.Fatal(err)
