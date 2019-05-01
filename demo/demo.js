@@ -7,7 +7,6 @@
   let errorMessage;
 
   function init() {
-    // Initialize the page with handlers and shit
     inputBox = document.getElementById("textInput");
     okButton = document.getElementById("predictButton");
     results = document.getElementById("results");
@@ -16,19 +15,24 @@
 
     results.style.display = "none"
     inputBox.value = ""
-    okButton.addEventListener("click", okClick);
+    okButton.addEventListener("click", getPredictions);
+    inputBox.addEventListener('keyup', getPredictions);
   }
 
-  function okClick() {
+  function getPredictions() {
     // get text from input box
     const input = inputBox.value.trim();
+    if (!input) {
+      resetResults();
+      return;
+    }
 
     // mock call to get predictions
-    getPredictions(input).then(response => {
+    makePredictionRequest(input).then(response => {
       if (response.status === 200) {
         response.json().then(body => {
           // display predictions in result
-          if (!body || !body.predictions) {
+          if (!body || !body.predictions || body.predictions.length < 1) {
             return
           }
     
@@ -56,13 +60,18 @@
     errorMessage.innerText = err.message
   }
 
-  function getPredictions(input) {
+  function makePredictionRequest(input) {
     const request = new Request("http://localhost:8080/prediction", {
       method: "POST",
       body: JSON.stringify({input: input}),
     });
 
     return fetch(request)
+  }
+
+  function resetResults() {
+    results.style.display = "none";
+    errorMessage.style.display = "none";
   }
 
   init();

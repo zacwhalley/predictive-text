@@ -102,11 +102,6 @@ func setCommands(app *cli.App) {
 			Aliases: []string{"p"},
 			Usage:   "Output the input text combined with the n words most likely to come next",
 			Action: func(c *cli.Context) error {
-				n, err := strconv.Atoi(c.Args().Get(0))
-				if err != nil {
-					return err
-				}
-
 				// get input from stdin
 				reader := bufio.NewReader(os.Stdin)
 				fmt.Print("Enter text: ")
@@ -116,12 +111,12 @@ func setCommands(app *cli.App) {
 				}
 				input = strings.TrimSpace(input)
 
-				predicted, err := predict(input, n)
+				predicted, err := postPredictionSvc(input)
 				if err != nil {
 					return err
 				}
 
-				for _, words := range predicted {
+				for _, words := range predicted.Predictions {
 					fmt.Printf("%s %s\n", input, words)
 				}
 
