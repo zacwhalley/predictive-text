@@ -4,12 +4,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/zacwhalley/predictive-text/data"
 )
 
-var db data.DBClient = data.NewMongoClient(os.Getenv("PREDTEXT_MONGODB_URI"))
+var db data.DBClient = data.NewMongoClient(os.Getenv("MONGODB_URI"))
 
 func main() {
 	r := mux.NewRouter()
@@ -23,8 +24,11 @@ func main() {
 		Methods(http.MethodGet)
 
 	// start server
-	port := ":" + os.Getenv("PREDTEXT_PORT")
-	err := http.ListenAndServe(port, r)
+	port := os.Getenv("PORT")
+	if strings.TrimSpace(port) == "" {
+		log.Fatal("Port must be set")
+	}
+	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
 		log.Fatal(err)
 	}

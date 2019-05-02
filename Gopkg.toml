@@ -29,3 +29,4 @@
   root-package = "github.com/zacwhalley/predictive-text"
   go-version = "go1.11"
   install = [ "./..." ]
+  
