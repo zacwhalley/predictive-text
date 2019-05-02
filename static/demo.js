@@ -61,7 +61,7 @@
   }
 
   function makePredictionRequest(input) {
-    const request = new Request("http://localhost:8080/prediction", {
+    const request = new Request("http://localhost:8080/api/prediction", {
       method: "POST",
       body: JSON.stringify({input: input}),
     });

@@ -111,7 +111,7 @@ func setCommands(app *cli.App) {
 				}
 				input = strings.TrimSpace(input)
 
-				predicted, err := postPredictionSvc(input)
+				predicted, err := predictionSvc(input)
 				if err != nil {
 					return err
 				}
