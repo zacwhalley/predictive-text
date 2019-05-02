@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/handlers"
-
 	"github.com/gorilla/mux"
 	"github.com/zacwhalley/predictive-text/data"
 )
@@ -14,28 +12,19 @@ import (
 var db data.DBClient = data.NewMongoClient(os.Getenv("PREDTEXT_MONGODB_URI"))
 
 func main() {
-	/*
-		Legacy CLI stuff
-		app := cli.NewApp()
-		initApp(app)
-
-		err := app.Run(os.Args)
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
-
 	r := mux.NewRouter()
-	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
-	allowedMethods := handlers.AllowedMethods([]string{
-		http.MethodPost,
-	})
 
-	r.HandleFunc("/prediction", PostPredictionController).Methods(http.MethodPost)
+	// API
+	r.HandleFunc("/api/prediction", PredictionController)
 
+	// web content
+	r.PathPrefix("/").
+		Handler(http.FileServer(http.Dir("./static/"))).
+		Methods(http.MethodGet)
+
+	// start server
 	port := ":" + os.Getenv("PREDTEXT_PORT")
-	err := http.ListenAndServe(port,
-		handlers.CORS(allowedOrigins, allowedMethods)(r))
+	err := http.ListenAndServe(port, r)
 	if err != nil {
 		log.Fatal(err)
 	}

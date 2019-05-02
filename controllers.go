@@ -21,9 +21,9 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 	return nil
 }
 
-// PostPredictionController returns an array of predictions for the given
+// PredictionController returns an array of predictions for the given
 // input text
-func PostPredictionController(w http.ResponseWriter, r *http.Request) {
+func PredictionController(w http.ResponseWriter, r *http.Request) {
 	log.Print("POST /prediction")
 	// Decode request body
 	var predSource dto.PredictionRequestDto
@@ -33,7 +33,7 @@ func PostPredictionController(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create prediction
-	response, err := postPredictionSvc(predSource.Input)
+	response, err := predictionSvc(predSource.Input)
 	if err != nil {
 		log.Print(err)
 		return
