@@ -24,3 +24,8 @@
 [[constraint]]
   name = "go.mongodb.org/mongo-driver"
   version = "~1.0.0"
+
+[metadata.heroku]
+  root-package = "github.com/zacwhalley/predictive-text"
+  go-version = "go1.11"
+  install = [ "./..." ]
