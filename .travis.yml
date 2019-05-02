@@ -1,19 +1,26 @@
 language: go
+
 go:
-  - 1.11.x
+- 1.11.x
 
 env:
-  - DEP_VERSION="0.5.1"
+- DEP_VERSION="0.5.1"
+
 before_install:
-  # Download the binary to bin folder in $GOPATH
-  - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64 -o $GOPATH/bin/dep
-  # Make the binary executable
-  - chmod +x $GOPATH/bin/dep
+- curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64
+  -o $GOPATH/bin/dep
+- chmod +x $GOPATH/bin/dep
 
 install:
-  - dep ensure
-  - go get github.com/gorilla/handlers
-  - go get github.com/gorilla/mux
+- dep ensure
+- go get github.com/gorilla/handlers
+- go get github.com/gorilla/mux
 
-script: 
-  - go test
+script:
+- go test
+
+deploy:
+  provider: heroku
+  api_key:
+    secure: bioNQDYtvw8jXy/TzGIEifETb+7MjX8qL+bW5ua6iOifqD8mQPeRTOh4Fum1I5TNLmzIClYKl7PCRAV1m0VlD5GQR/qGuNBS4sKlI3H5f+o6BQH/wtCDDUlKuKzuAku5kjdX1npGy3SxIyiA14jtcZ6TVT6LB0HDW8r9x4tJ9WMAaYbdPW4abBnkvFvt0NTIoF+iQfEq/ZkzoF1vNlxoLa5DClU1jdSEDKX5N0sbC0Dv+XGwUbaHDbgwg/dBNqeQhlgQlBm2KWNrFvXVp+G/0dv64YLM4liD2444h6+0p98Ma8/a2x6WFgynEnlrwXWvhMXVr43LAdqVbVF5PCTF7zK2E7ybgccmnKykq1q/iEN4z9WUMlUDZDD2eAENsgjLNGFvpLn+dcAKUb8rw5lf7TTIVq4nTDvV2NFRhpYTukYX/IFfS0qKB2JXGfQQjeLdoH24DWzHBQgddUDNFnrpygkn5LV/ipiq8VKnplW4MR3s2zyORHr+oTSCVVLjjmqbr3yVu5vNYYTk1k03jQxhgVvifPBqeInfCr7Z57gERLg6wn5fhcZmssXCIqjohLrVNHNGgTHUSeaP5BPJ9+vqRIq4CPtoAVHNmBTA+fDCZ2Kp3U0eLATP3AQeT77IfGeDR7HLGK977VBz1Xm7L/UuFQMDidnxcBIF33hnRiEFqzA=
+  app: zw-predictive-text
