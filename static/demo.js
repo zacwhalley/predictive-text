@@ -1,10 +1,10 @@
 (function() { "use strict"
-  // elements on page
   let inputBox;
   let okButton;
   let results;
   let resultsList;
   let errorMessage;
+  let apiUrl;
 
   function init() {
     inputBox = document.getElementById("textInput");
@@ -12,6 +12,8 @@
     results = document.getElementById("results");
     resultsList = document.getElementById("resultsList");
     errorMessage = document.getElementById("errorMessage");
+
+    apiUrl = document.getElementById("apiUrl").innerText;
 
     results.style.display = "none"
     inputBox.value = ""
@@ -61,7 +63,7 @@
   }
 
   function makePredictionRequest(input) {
-    const request = new Request("http://localhost:8080/api/prediction", {
+    const request = new Request(apiUrl + "/prediction", {
       method: "POST",
       body: JSON.stringify({input: input}),
     });

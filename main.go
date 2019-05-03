@@ -15,19 +15,30 @@ var db data.DBClient = data.NewMongoClient(os.Getenv("MONGODB_URI"))
 func main() {
 	r := mux.NewRouter()
 
+	// Get environment variables
+	api := os.Getenv("API_URL")
+	if strings.TrimSpace(api) == "" {
+		log.Fatal("API_URL must be set")
+	}
+
+	port := os.Getenv("PORT")
+	if strings.TrimSpace(port) == "" {
+		log.Fatal("PORT must be set")
+	}
+
 	// API
 	r.HandleFunc("/api/prediction", PredictionController)
 
-	// web content
-	r.PathPrefix("/").
-		Handler(http.FileServer(http.Dir("./static/"))).
+	// ui
+
+	r.HandleFunc("/", serveDemo).
+		Methods(http.MethodGet)
+
+	r.PathPrefix("/static/").
+		Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))).
 		Methods(http.MethodGet)
 
 	// start server
-	port := os.Getenv("PORT")
-	if strings.TrimSpace(port) == "" {
-		log.Fatal("Port must be set")
-	}
 	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
 		log.Fatal(err)
