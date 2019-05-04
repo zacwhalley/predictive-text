@@ -30,7 +30,6 @@ func main() {
 	r.HandleFunc("/api/prediction", PredictionController)
 
 	// ui
-
 	r.HandleFunc("/", serveDemo).
 		Methods(http.MethodGet)
 

@@ -1,6 +1,5 @@
 (function() { "use strict"
   let inputBox;
-  let okButton;
   let results;
   let resultsList;
   let errorMessage;
@@ -8,7 +7,6 @@
 
   function init() {
     inputBox = document.getElementById("textInput");
-    okButton = document.getElementById("predictButton");
     results = document.getElementById("results");
     resultsList = document.getElementById("resultsList");
     errorMessage = document.getElementById("errorMessage");
@@ -17,7 +15,6 @@
 
     results.style.display = "none"
     inputBox.value = ""
-    okButton.addEventListener("click", getPredictions);
     inputBox.addEventListener('keyup', getPredictions);
   }
 
