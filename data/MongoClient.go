@@ -3,11 +3,9 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/zacwhalley/predictive-text/markov"
 	"github.com/zacwhalley/predictive-text/util"
@@ -102,7 +100,7 @@ func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
 	}
 
 	chains := m.client.Database("redditSim").Collection("chain")
-	filter := bson.D{{Key: "users", Value: bson.A{"predict"}}}
+	filter := bson.D{{Key: "users", Value: bson.A{}}}
 	options := &options.FindOneOptions{}
 	options.Projection = bson.D{{Key: "chain.chain." + p.ToString(), Value: 1}}
 	result := &UserChainDao{}
@@ -135,31 +133,4 @@ func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
 	}
 
 	return current + " " + next, nil
-}
-
-// UpsertChain upserts the chain for a user
-func (m MongoClient) UpsertChain(users []string, chain *markov.Chain) error {
-	if m.client == nil {
-		return errors.New("No connection to MongoDB")
-	}
-
-	sort.Strings(users)
-
-	fmt.Printf("Saving data for %v\n", users)
-	// Get chain collection from redditSim db
-	chains := m.client.Database("redditSim").Collection("chain")
-	userChain := UserChainDao{users, chain, time.Now()}
-
-	// Insert chain as new document
-	filter := bson.D{{Key: "users", Value: users}}
-	update := bson.D{{Key: "$set", Value: userChain}}
-	isUpsert := true
-	options := &options.UpdateOptions{Upsert: &isUpsert}
-
-	_, err := chains.UpdateOne(context.TODO(), filter, update, options)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
