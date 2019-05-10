@@ -15,9 +15,23 @@
 
     results.style.display = "none"
     inputBox.value = ""
-    inputBox.addEventListener('keyup', getPredictions);
+    inputBox.addEventListener('keyup', handleInputKeyup);
   }
 
+  function handleInputKeyup(e) {
+    const spaceCode = 32;
+    const enterCode = 18;
+
+    if (!inputBox.value) {
+      // user cleared input
+      resetResults();
+      return
+    }
+
+    if (e.keyCode === spaceCode || e.keyCode === enterCode) {
+      getPredictions();
+    }
+  }
   function getPredictions() {
     // get text from input box
     const input = inputBox.value.trim();
