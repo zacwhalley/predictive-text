@@ -1,5 +1,6 @@
 (function() { "use strict"
   let inputBox;
+  let predictBtn;
   let results;
   let resultsList;
   let errorMessage;
@@ -9,13 +10,15 @@
     inputBox = document.getElementById("textInput");
     results = document.getElementById("results");
     resultsList = document.getElementById("resultsList");
+    predictBtn = document.getElementById("predictBtn");
     errorMessage = document.getElementById("errorMessage");
-
     apiUrl = document.getElementById("apiUrl").innerText;
 
     results.style.display = "none"
     inputBox.value = ""
-    inputBox.addEventListener('keyup', handleInputKeyup);
+    
+    //inputBox.addEventListener("keyup", handleInputKeyup);
+    predictBtn.addEventListener("click", getPredictions);
   }
 
   function handleInputKeyup(e) {
