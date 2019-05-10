@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"sort"
-	"strings"
 
 	"github.com/zacwhalley/predictive-text/markov"
 	"github.com/zacwhalley/predictive-text/util"
@@ -60,45 +59,26 @@ func (m MongoClient) GetChain(users []string) (*UserChainDao, error) {
 	return result, nil
 }
 
-// GetPrediction predicts the 3 most likely next n words for an input
-func (m MongoClient) GetPrediction(input string, n int) ([]string, error) {
-	const numPredictions = 1
-	const prefixLen = 2
-	var predictions []string
-	var p markov.Prefix = make([]string, prefixLen)
-
-	inputWords := strings.Split(input, " ")
-
-	// put last prefixLen words of input into prefix
-	copy(p, inputWords[util.MaxInt(0, len(inputWords)-prefixLen):])
-
-	for i := 0; i < numPredictions; i++ {
-		var newPrefix markov.Prefix = make([]string, len(p))
-		copy(newPrefix, p)
-		prediction, err := m.getMostCommon(newPrefix, n)
-		if err != nil {
-			return nil, err
-		}
-
-		prediction = strings.TrimSpace(prediction)
-		if prediction != "" {
-			predictions = append(predictions, prediction)
-		}
-		if err != nil {
-			return nil, err
-		}
+// GetPredictionMap returns a map of specified depth containing all words
+// that may occur after the given input
+func (m MongoClient) GetPredictionMap(p markov.Prefix, depth int) (map[string][]string, error) {
+	var newPrefix markov.Prefix = make([]string, len(p))
+	copy(newPrefix, p)
+	predictionMap, err := m.getPredGraph(newPrefix, depth)
+	if err != nil {
+		return nil, err
 	}
-
-	return predictions, nil
+	return predictionMap, nil
 }
 
-// getMostCommon recursively returns the most common string in the set of strings p maps to
-func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
+// getPredGraph recursively returns a map of specified depth given a depth
+func (m MongoClient) getPredGraph(p markov.Prefix, depth int) (map[string][]string, error) {
 	// recursive base case
-	if n == 0 {
-		return "", nil
+	if depth <= 0 {
+		return nil, nil
 	}
 
+	// Search for current prefix
 	chains := m.client.Database("redditSim").Collection("chain")
 	filter := bson.D{{Key: "users", Value: bson.A{}}}
 	options := &options.FindOneOptions{}
@@ -107,30 +87,39 @@ func (m MongoClient) getMostCommon(p markov.Prefix, n int) (string, error) {
 
 	findResult := chains.FindOne(context.TODO(), filter, options)
 	if err := findResult.Err(); err != nil {
-		return "", err
+		return nil, err
 	}
 	err := findResult.Decode(result)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// gets the list of suffixes for the given prefix
 	if result.Chain == nil ||
 		result.Chain.Chain == nil ||
-		len(result.Chain.Chain) < 1 {
-		// prefix exists but no suffix available - return early
-		return "", nil
+		len(result.Chain.Chain) <= 0 {
+		// no suffixes exist
+		return nil, nil
 	}
 
-	nextOptions := result.Chain.Chain[p.ToString()]
-	current := nextOptions[0]
-	p.Shift(current)
+	// Recursively shift each returned value onto the current prefix
+	resultMap := result.Chain.Chain
+	suffixes := resultMap[p.ToString()]
 
-	// recursively find next most common
-	next, err := m.getMostCommon(p, n-1)
-	if err != nil {
-		return "", err
+	// Merge each with the current map after it
+	for _, suffix := range suffixes {
+		var newP markov.Prefix = make([]string, len(p))
+		copy(newP, p)
+		newP.Shift(suffix)
+
+		newMap, err := m.getPredGraph(newP, depth-1)
+		if err != nil {
+			return nil, err
+		}
+		if newMap != nil {
+			util.MapUnionStrStrA(resultMap, newMap)
+		}
 	}
 
-	return current + " " + next, nil
+	return resultMap, nil
 }
