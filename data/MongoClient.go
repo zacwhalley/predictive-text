@@ -6,8 +6,8 @@ import (
 	"log"
 	"sort"
 
-	"github.com/zacwhalley/predictive-text/markov"
-	"github.com/zacwhalley/predictive-text/util"
+	"github.com/zacwhalley/predictivetext/markov"
+	"github.com/zacwhalley/predictivetext/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

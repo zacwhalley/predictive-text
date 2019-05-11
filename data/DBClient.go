@@ -1,6 +1,6 @@
 package data
 
-import "github.com/zacwhalley/predictive-text/markov"
+import "github.com/zacwhalley/predictivetext/markov"
 
 // DBClient is an interface for database access
 type DBClient interface {

@@ -4,18 +4,25 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/zacwhalley/predictive-text/dto"
-	"github.com/zacwhalley/predictive-text/markov"
-	"github.com/zacwhalley/predictive-text/util"
+	"github.com/zacwhalley/predictivetext/common"
+	"github.com/zacwhalley/predictivetext/data"
+	"github.com/zacwhalley/predictivetext/markov"
+	"github.com/zacwhalley/predictivetext/util"
 )
 
+// PredictionSvc is an implementation of the PredictionSvc interface
+type PredictionSvc struct {
+	db data.DBClient
+}
+
+// prediction represents a weighted prediction
 type prediction struct {
 	text   string
 	weight int
 }
 
-// predictionSvc predicts the most likely next words for an input
-func predictionSvc(input string) (dto.PredictionResponseDto, error) {
+// Predict predicts the most likely next words for an input
+func (svc PredictionSvc) Predict(input string) ([]string, error) {
 	// create prefix for search
 	const prefixLen = 2
 
@@ -24,24 +31,19 @@ func predictionSvc(input string) (dto.PredictionResponseDto, error) {
 	prefixWords := inputWords[util.MaxInt(0, len(inputWords)-prefixLen):]
 
 	const depth = 2 // default to search for next 2 most common
-	result, err := db.GetPredictionMap(prefixWords, depth)
+	result, err := svc.db.GetPredictionMap(prefixWords, depth)
 	if err != nil {
-		return dto.PredictionResponseDto{}, err
+		return nil, err
 	}
 
-	freqSet := buildFreqSet(result, depth, prefixWords, "")
-	predictions := makePredictions(freqSet)
+	freqSet := svc.buildFreqSet(result, depth, prefixWords, "")
+	predictions := svc.makePredictions(freqSet)
 
-	response := dto.PredictionResponseDto{
-		Input:       input,
-		Predictions: predictions,
-	}
-
-	return response, nil
+	return predictions, nil
 }
 
-func buildFreqSet(chain map[string][]string, depth int, p markov.Prefix, result string) Set {
-	var resultSet Set = make(map[string]int)
+func (svc PredictionSvc) buildFreqSet(chain map[string][]string, depth int, p markov.Prefix, result string) common.Set {
+	resultSet := common.NewSet()
 	suffixes := chain[p.ToString()]
 
 	if depth == 0 || len(suffixes) == 0 {
@@ -60,14 +62,14 @@ func buildFreqSet(chain map[string][]string, depth int, p markov.Prefix, result 
 		newP.Shift(suffix)
 
 		// recurse, get map with depth reduced by 1 - merge with current map
-		nextSet := buildFreqSet(chain, depth-1, newP, result+" "+suffix)
+		nextSet := svc.buildFreqSet(chain, depth-1, newP, result+" "+suffix)
 		resultSet.AddSet(nextSet)
 	}
 
 	return resultSet
 }
 
-func makePredictions(freqSet Set) []string {
+func (svc PredictionSvc) makePredictions(freqSet common.Set) []string {
 	// sort by weight & return top n
 	predictions := []prediction{}
 	for text, weight := range freqSet {
