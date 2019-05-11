@@ -6,7 +6,7 @@ import (
 	"io"
 	"math/rand"
 
-	"github.com/zacwhalley/predictive-text/util"
+	"github.com/zacwhalley/predictivetext/util"
 )
 
 // Chain contains a map ("chain") of Prefixes to a list of suffixes

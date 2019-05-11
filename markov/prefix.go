@@ -3,7 +3,7 @@ package markov
 import (
 	"strings"
 
-	"github.com/zacwhalley/predictive-text/util"
+	"github.com/zacwhalley/predictivetext/util"
 )
 
 // Prefix is a markov chain prefix of one of more words
