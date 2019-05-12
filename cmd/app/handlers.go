@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"encoding/json"
@@ -6,13 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
-	"github.com/zacwhalley/predictivetext"
+	"github.com/zacwhalley/predictivetext/domain"
 )
 
 // PredictionHandler handles requests for predictions
 type PredictionHandler struct {
-	PredictionSvc predictivetext.PredictionSvc
+	PredictionSvc domain.PredictionSvc
 }
 
 // DemoHandler handles requests for the demo page
@@ -21,7 +22,7 @@ type DemoHandler struct{}
 // Handle handles requests for predictions
 func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	// Decode request body
-	var predSource predictivetext.PredictionRequest
+	var predSource domain.PredictionRequest
 	if err := json.NewDecoder(r.Body).Decode(&predSource); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -35,7 +36,7 @@ func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	response := predictivetext.PredictionResponse{
+	response := domain.PredictionResponse{
 		Input:       predSource.Input,
 		Predictions: predictions,
 	}
@@ -49,8 +50,14 @@ func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) 
 
 // Handle handles requests for the demo page
 func (handler DemoHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	const fileName = "./templates/demo.html" // TODO - add the correct path to the demo page
-	t, _ := template.ParseFiles(fileName)
+	wd, _ := os.Getwd()
+	fileName := filepath.Join(wd, "./cmd/app/templates/demo.html")
+	t, err := template.ParseFiles(fileName)
+	if err != nil {
+		log.Print(err)
+		respondWithJSON(w, http.StatusInternalServerError, nil)
+		return
+	}
 	data := struct{ APIUrl string }{os.Getenv("API_URL")}
 
 	t.Execute(w, data)
