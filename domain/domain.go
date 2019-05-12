@@ -1,4 +1,4 @@
-package predictivetext
+package domain
 
 // PredictionSvc is a service for generating predictions
 type PredictionSvc interface {

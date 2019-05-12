@@ -1,16 +1,18 @@
-package main
+package app
 
 import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/zacwhalley/predictivetext/data"
 )
 
-func main() {
+// Main is the entrypoint for the predictivetext web service
+func Main() {
 	// Get environment variables - TODO: Move this into a config somewhere
 	port := getEnv("PORT")
 	mongodbURI := getEnv("MONGODB_URI")
@@ -30,8 +32,10 @@ func main() {
 	r.HandleFunc("/", demoHandler.Handle).
 		Methods(http.MethodGet)
 
+	wd, _ := os.Getwd()
+	staticDir := filepath.Join(wd, "./cmd/app/static/")
 	r.PathPrefix("/static/").
-		Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))).
+		Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).
 		Methods(http.MethodGet)
 
 	// start server
