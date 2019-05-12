@@ -18,7 +18,8 @@ install:
 script:
 - go test
 
-before_deploy: cd cmd/app 
+before_deploy: 
+- cd cmd/app
 
 deploy:
   provider: heroku
