@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"sort"
+	"time"
 
 	"github.com/zacwhalley/predictivetext/markov"
 	"github.com/zacwhalley/predictivetext/util"
@@ -57,6 +58,35 @@ func (m MongoClient) GetChain(users []string) (*UserChainDao, error) {
 	}
 
 	return result, nil
+}
+
+// UpsertChain upserts the chain for a set of users
+func (m MongoClient) UpsertChain(users []string, chain *markov.Chain) error {
+	if m.client == nil {
+		return errors.New("No connection to MongoDB")
+	}
+
+	sort.Strings(users)
+
+	log.Printf("Saving data for %v\n", users)
+	// Get chain collection from redditSim db
+	chains := m.client.Database("redditSim").Collection("chain")
+	userChain := UserChainDao{users, chain, time.Now()}
+
+	// Insert chain as new document
+	filter := bson.D{{Key: "users", Value: users}}
+	update := bson.D{{Key: "$set", Value: userChain}}
+	isUpsert := true
+	options := &options.UpdateOptions{Upsert: &isUpsert}
+
+	result, err := chains.UpdateOne(context.TODO(), filter, update, options)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("ID: %v", result.UpsertedID)
+
+	return nil
 }
 
 // GetPredictionMap returns a map of specified depth containing all words
