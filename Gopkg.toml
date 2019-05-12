@@ -28,5 +28,5 @@
 [metadata.heroku]
   root-package = "github.com/zacwhalley/predictivetext"
   go-version = "go1.11"
-  install = [ "./..." ]
+  install = [ "./cmd/app/..." ]
   
