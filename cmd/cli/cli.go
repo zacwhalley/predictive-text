@@ -42,31 +42,35 @@ func setCommands(app *cli.App) {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				source := c.String("source")
-				if source == reddit.String() {
-					// Generate data from scraping reddit comments
-					pageLimit := c.Int("pageLimit")
-					if pageLimit < 0 {
-						return errors.New("pageLimit must be greater than 0")
-					}
-					users := readUsers()
-					log.Println("Done getting user names. Please wait for data to generate.")
-					if err := buildChainFromReddit(users, pageLimit); err != nil {
-						return err
-					}
-					return nil
-				} else if source == text.String() {
-					if err := buildChainFromStdin(); err != nil {
-						return err
-					}
-				} else {
-					return errors.New(source + " is not a valid data source.")
-				}
-
-				return nil
+				return buildAction(c)
 			},
 		},
 	}
+}
+
+func buildAction(c *cli.Context) error {
+	source := c.String("source")
+	if source == reddit.String() {
+		// Generate data from scraping reddit comments
+		pageLimit := c.Int("pageLimit")
+		if pageLimit < 0 {
+			return errors.New("pageLimit must be greater than 0")
+		}
+		users := readUsers()
+		log.Println("Done getting user names. Please wait for data to generate.")
+		if err := buildChainFromReddit(users, pageLimit); err != nil {
+			return err
+		}
+		return nil
+	} else if source == text.String() {
+		if err := buildChainFromStdin(); err != nil {
+			return err
+		}
+	} else {
+		return errors.New(source + " is not a valid data source.")
+	}
+
+	return nil
 }
 
 // readUsers reads an arbitrary number of usernames from standard input

@@ -15,12 +15,6 @@ type PredictionSvc struct {
 	db data.DBClient
 }
 
-// prediction represents a weighted prediction
-type prediction struct {
-	text   string
-	weight int
-}
-
 // Predict predicts the most likely next words for an input
 func (svc PredictionSvc) Predict(input string) ([]string, error) {
 	// create prefix for search
@@ -42,20 +36,20 @@ func (svc PredictionSvc) Predict(input string) ([]string, error) {
 	return predictions, nil
 }
 
-func (svc PredictionSvc) buildFreqSet(chain map[string][]string, depth int, p markov.Prefix, result string) common.Set {
-	resultSet := common.NewSet()
+func (svc PredictionSvc) buildFreqSet(chain common.SetMap, depth int, p markov.Prefix, result string) common.Set {
+	resultSet := make(common.Set)
 	suffixes := chain[p.ToString()]
 
 	if depth == 0 || len(suffixes) == 0 {
 		// base case - add result to set and return
 		trimmedResult := strings.TrimSpace(result)
 		if trimmedResult != "" {
-			resultSet.AddString(trimmedResult)
+			resultSet.Add(trimmedResult)
 		}
 		return resultSet
 	}
 
-	for _, suffix := range suffixes {
+	for suffix := range suffixes {
 		// copy prefix
 		var newP markov.Prefix = make([]string, len(p))
 		copy(newP, p)
@@ -71,19 +65,16 @@ func (svc PredictionSvc) buildFreqSet(chain map[string][]string, depth int, p ma
 
 func (svc PredictionSvc) makePredictions(freqSet common.Set) []string {
 	// sort by weight & return top n
-	predictions := []prediction{}
-	for text, weight := range freqSet {
-		predictions = append(predictions, prediction{text: text, weight: weight})
-	}
+	predictions := freqSet.ToPairs()
 	sort.Slice(predictions, func(i, j int) bool {
-		return predictions[i].weight > predictions[j].weight
+		return predictions[i].Value > predictions[j].Value
 	})
 
 	// create slice of top numPredictions results
 	numPredictions := util.MinInt(3, len(predictions))
 	predictionRes := make([]string, numPredictions)
 	for i, pred := range predictions[:numPredictions] {
-		predictionRes[i] = pred.text
+		predictionRes[i] = pred.Key
 	}
 
 	return predictionRes
