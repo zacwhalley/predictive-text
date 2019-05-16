@@ -9,5 +9,7 @@ import (
 type DBClient interface {
 	GetChain(users []string) (*UserChainDao, error)
 	UpsertChain(users []string, chain *markov.Chain) error
+	GetPrediction(prefix, source string) error
+	UpsertPrediction(prefix string, suffixes []common.Pair) error
 	GetPredictionMap(p markov.Prefix, depth int) (common.SetMap, error)
 }

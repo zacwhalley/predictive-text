@@ -6,7 +6,7 @@ import (
 	"github.com/zacwhalley/predictivetext/markov"
 )
 
-// UserChainDao is the data access object for user chain objects
+// UserChainDao is the data access object / schema for user chain objects
 type UserChainDao struct {
 	Users        []string
 	Chain        *markov.Chain

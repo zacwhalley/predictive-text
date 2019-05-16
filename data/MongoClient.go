@@ -89,6 +89,68 @@ func (m MongoClient) UpsertChain(users []string, chain *markov.Chain) error {
 	return nil
 }
 
+// GetPrediction returns a prediction for the given prefix and source
+func (m MongoClient) GetPrediction(prefix, source string) ([]string, error) {
+	if m.client == nil {
+		return nil, errors.New("No connection to MongoDB")
+	}
+
+	predictions := m.client.Database("predtext").Collection("predictions")
+	filter := bson.D{
+		{Key: "prefix", Value: prefix},
+		{Key: "source", Value: source},
+	}
+	options := &options.FindOneOptions{}
+	result := &PredictionDao{}
+
+	findResult := predictions.FindOne(context.TODO(), filter, options)
+	if err := findResult.Err(); err != nil {
+		return nil, err
+	}
+
+	err := findResult.Decode(result)
+	if err != nil {
+		// No document was found
+		return nil, err
+	}
+
+	// return unweighted predictions
+	suffixes := []string{}
+	for i := 0; i < len(result.Suffixes); i++ {
+		suffixes = append(suffixes, result.Suffixes[i].Key)
+	}
+
+	return suffixes, nil
+}
+
+// UpsertPrediction upserts a prediction in the prediction collection
+// using the prefix as a key
+func (m MongoClient) UpsertPrediction(prefix string, suffixes []common.Pair) error {
+	if m.client == nil {
+		return errors.New("No connection to MongoDB")
+	}
+
+	log.Printf("Saving prediction for %v\n", prefix)
+	// Get chain collection from redditSim db
+	predictions := m.client.Database("predText").Collection("predictions")
+	document := PredictionDao{Source: "", Prefix: prefix, Suffixes: suffixes}
+
+	// Insert chain as new document
+	filter := bson.D{{Key: "prefix", Value: prefix}}
+	update := bson.D{{Key: "$set", Value: document}}
+	isUpsert := true
+	options := &options.UpdateOptions{Upsert: &isUpsert}
+
+	result, err := predictions.UpdateOne(context.TODO(), filter, update, options)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("ID: %v", result.UpsertedID)
+
+	return nil
+}
+
 // GetPredictionMap returns a map of specified depth containing all words
 // that may occur after the given input
 func (m MongoClient) GetPredictionMap(p markov.Prefix, depth int) (common.SetMap, error) {
