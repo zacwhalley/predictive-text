@@ -82,8 +82,10 @@ func buildAction(c *cli.Context) error {
 }
 
 func generateAction(c *cli.Context) error {
-	// TODO - this whole function
-	return nil
+	predSvc := common.PredictionSvc{DB: db}
+	id := c.Args().Get(0)
+	err := predSvc.GeneratePredictionSet(id)
+	return err
 }
 
 // readUsers reads an arbitrary number of usernames from standard input
