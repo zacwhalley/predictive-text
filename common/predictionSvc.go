@@ -15,7 +15,8 @@ type PredictionSvc struct {
 
 // GetPrediction predicts the most likely next words for an input
 func (svc PredictionSvc) GetPrediction(input string) ([]string, error) {
-	prediction, err := svc.DB.GetPrediction(input, "")
+	key := MakePrefix(input, 2)
+	prediction, err := svc.DB.GetPrediction(key.ToString(), "")
 	if err != nil {
 		return nil, err
 	}
