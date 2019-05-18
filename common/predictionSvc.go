@@ -47,21 +47,25 @@ func (svc PredictionSvc) GeneratePredictionSet(id string) error {
 	}
 
 	const depth = 2 // arbitrary
+	const breadth = 3
+	count := 0
 	for prefix := range chainData {
-		prediction := predictionFromChain(prefix, chain, depth)
+		prediction := predictionFromChain(prefix, chain, depth, breadth)
 		if err := svc.DB.UpsertPrediction(prediction); err != nil {
 			return err
 		}
+		count++
+		log.Printf("Save prediction for %s. (%v/%v)", prefix, count, len(chainData))
 	}
 
 	log.Printf("All predictions saved for id %s", id)
 	return nil
 }
 
-func predictionFromChain(key string, chain domain.Chain, depth int) domain.Prediction {
+func predictionFromChain(key string, chain domain.Chain, depth, breadth int) domain.Prediction {
 	prefixLen := chain.GetPrefixLen()
 	prefix := MakePrefix(key, prefixLen)
-	suffixes := getFollowSet(prefix, chain.GetData(), depth).ToPairs()
+	suffixes := getFollowSet(prefix, chain.GetData(), depth, breadth).ToPairs()
 
 	// sort in descending order + return top 3
 	sort.Slice(suffixes, func(i, j int) bool {
@@ -76,22 +80,24 @@ func predictionFromChain(key string, chain domain.Chain, depth int) domain.Predi
 	return prediction
 }
 
-func getFollowSet(prefix domain.Prefix, chain domain.SetMap, depth int) domain.Set {
+func getFollowSet(prefix domain.Prefix, chain domain.SetMap, depth, breadth int) domain.Set {
 	results := make(Set)
 	suffixSet, _ := chain.Get(prefix.ToString())
-	suffixMap, _ := suffixSet.(Set)
-	if len(suffixMap) <= 0 || depth == 0 {
-		// base case
-		return results
+
+	if depth == 0 || suffixSet.IsEmpty() {
+		return suffixSet
 	}
 
-	for suffix := range suffixMap {
+	suffixMap, _ := suffixSet.(Set)
+	for suffix, weight := range suffixMap {
 		newPrefix := prefix.Copy()
 		newPrefix.Shift(suffix)
 
-		next := getFollowSet(newPrefix, chain, depth-1)
-
-		results.Union(next)
+		followSet := getFollowSet(newPrefix, chain, depth-1, breadth)
+		if !followSet.IsEmpty() {
+			next := followSet.MakePrefixSet(suffix, weight)
+			results.Union(next)
+		}
 	}
 
 	return results

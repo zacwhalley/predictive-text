@@ -16,8 +16,10 @@ type PredictionSvc interface {
 type Set interface {
 	Add(key string)
 	Get(key string) (int, bool)
+	IsEmpty() bool
 	GetWeight(key string) (float64, bool)
 	Union(set Set)
+	MakePrefixSet(text string, weight int) Set
 	ToPairs() []Pair
 }
 
@@ -84,7 +86,7 @@ type Prediction struct {
 type UserChainDao struct {
 	Users        []string                  `bson:"users"`
 	Data         map[string]map[string]int `bson:"data"`
-	PrefixLen    int                       `bson:"prefixLen"`
+	PrefixLen    int                       `bson:"prefixlen"`
 	LastModified time.Time                 `bson:"lastmodified"`
 }
 

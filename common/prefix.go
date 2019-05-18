@@ -12,10 +12,12 @@ type Prefix []string
 
 // MakePrefix creates a prefix of size prefixLen from input
 func MakePrefix(input string, prefixLen int) Prefix {
+	newPrefix := make(Prefix, prefixLen)
 	words := strings.Split(strings.TrimSpace(input), " ")
 	limit := util.MaxInt(len(words)-prefixLen, 0)
+	copy(newPrefix, words[limit:])
 
-	return words[limit:]
+	return newPrefix
 }
 
 // ToString returns the Prefix as a string (for use as a map key)
@@ -31,7 +33,7 @@ func (p Prefix) IsEmpty() bool {
 
 // Copy returns a value copy of a prefix
 func (p Prefix) Copy() domain.Prefix {
-	var newPrefix Prefix
+	newPrefix := make(Prefix, cap(p))
 	copy(newPrefix, p)
 	return newPrefix
 }
@@ -64,5 +66,8 @@ func (p Prefix) Reduce() {
 
 // Last returns the last word in the prefix
 func (p Prefix) Last() string {
+	if p.IsEmpty() {
+		return ""
+	}
 	return p[len(p)-1]
 }

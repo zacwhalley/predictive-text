@@ -80,6 +80,7 @@ func (m MongoClient) UpsertChain(users []string, chain domain.Chain) error {
 		Users:        users,
 		Data:         data,
 		LastModified: time.Now(),
+		PrefixLen:    chain.GetPrefixLen(),
 	}
 
 	// Insert chain as new document
@@ -123,9 +124,10 @@ func (m MongoClient) GetPrediction(prefix, source string) (domain.Prediction, er
 		return domain.Prediction{}, err
 	}
 
-	predictionResult := domain.Prediction{
-		Prefix:   result.Prefix,
-		Suffixes: result.Suffixes,
+	predictionResult := domain.Prediction{}
+	if findResult != nil {
+		predictionResult.Prefix = result.Prefix
+		predictionResult.Suffixes = result.Suffixes
 	}
 
 	return predictionResult, nil
@@ -138,7 +140,6 @@ func (m MongoClient) UpsertPrediction(prediction domain.Prediction) error {
 		return errors.New("No connection to MongoDB")
 	}
 
-	log.Printf("Saving prediction for %v\n", prediction.Prefix)
 	// Get chain collection from redditSim db
 	predictions := m.client.Database("predtext").Collection("predictions")
 	document := domain.PredictionDao{
@@ -153,12 +154,10 @@ func (m MongoClient) UpsertPrediction(prediction domain.Prediction) error {
 	isUpsert := true
 	options := &options.UpdateOptions{Upsert: &isUpsert}
 
-	result, err := predictions.UpdateOne(context.TODO(), filter, update, options)
+	_, err := predictions.UpdateOne(context.TODO(), filter, update, options)
 	if err != nil {
 		return err
 	}
-
-	log.Printf("ID: %v", result.UpsertedID)
 
 	return nil
 }

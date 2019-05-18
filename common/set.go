@@ -15,6 +15,9 @@ func (s Set) Add(key string) {
 	if strings.HasPrefix(key, "$") {
 		key = strings.Replace(key, "$", "", 1)
 	}
+	if strings.TrimSpace(key) == "" {
+		return
+	}
 	if _, ok := s[key]; ok {
 		s[key]++
 	} else {
@@ -22,14 +25,26 @@ func (s Set) Add(key string) {
 	}
 }
 
+// IsEmpty returne true if the set is empty, false otherwise
+func (s Set) IsEmpty() bool {
+	return len(s) <= 0
+}
+
 // Union adds all values from one set into another, merging duplicates
 func (s Set) Union(set domain.Set) {
+	if set.IsEmpty() {
+		return
+	}
+
 	rangeSet, _ := set.(Set) // type check - only works when implemented as rangeable
 	for key, count := range rangeSet {
+		if strings.TrimSpace(key) == "" {
+			continue
+		}
 		if _, ok := s.Get(key); ok {
 			s[key] += count
 		} else {
-			s[key] = 1
+			s[key] = count
 		}
 	}
 }
@@ -50,6 +65,16 @@ func (s Set) GetWeight(key string) (float64, bool) {
 	return -1.0, false
 }
 
+// MakePrefixSet creates a set from s where all keys are prepended by text
+func (s Set) MakePrefixSet(text string, weight int) domain.Set {
+	newSet := make(Set)
+	for key, value := range s {
+		newSet[strings.Join([]string{text, key}, " ")] = value + weight
+	}
+
+	return newSet
+}
+
 // ToPairs converts the key-value sets to a list of pairs
 func (s Set) ToPairs() []domain.Pair {
 	list := make([]domain.Pair, len(s))
@@ -65,7 +90,7 @@ type SetMap map[string]Set
 
 // MakeSetMap converts a primitive map into a set map
 func MakeSetMap(data map[string]map[string]int) SetMap {
-	var newSetMap SetMap
+	newSetMap := make(SetMap)
 	for key, value := range data {
 		newSetMap[key] = value
 	}
