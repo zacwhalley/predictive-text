@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/zacwhalley/predictivetext/data"
+	"github.com/zacwhalley/predictivetext/common"
 )
 
 // Main is the entrypoint for the predictivetext web service
@@ -18,8 +18,8 @@ func Main() {
 	mongodbURI := getEnv("MONGODB_URI")
 
 	// Set up services and handlers
-	db := data.NewMongoClient(mongodbURI)
-	predictionSvc := PredictionSvc{db}
+	db := common.NewMongoClient(mongodbURI)
+	predictionSvc := common.PredictionSvc{db}
 	predictionHandler := PredictionHandler{predictionSvc}
 	demoHandler := DemoHandler{}
 

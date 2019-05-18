@@ -13,7 +13,7 @@ import (
 
 // PredictionHandler handles requests for predictions
 type PredictionHandler struct {
-	PredictionSvc domain.PredictionSvc
+	svc domain.PredictionSvc
 }
 
 // DemoHandler handles requests for the demo page
@@ -29,10 +29,10 @@ func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Create predictions
-	predictions, err := handler.PredictionSvc.Predict(predSource.Input)
+	predictions, err := handler.svc.GetPrediction(predSource.Input)
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "Could not create prediction", http.StatusInternalServerError)
+		http.Error(w, "Could not get prediction", http.StatusInternalServerError)
 		return
 	}
 
