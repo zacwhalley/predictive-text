@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
-	"github.com/zacwhalley/predictivetext/data"
+	"github.com/zacwhalley/predictivetext/common"
+	"github.com/zacwhalley/predictivetext/domain"
 )
 
-var db data.DBClient = data.NewMongoClient("mongodb://localhost:27017")
+var db domain.DBClient = common.NewMongoClient("mongodb://localhost:27017")
 
 func main() {
 	app := cli.NewApp()

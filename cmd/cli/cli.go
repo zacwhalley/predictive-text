@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
-	"github.com/zacwhalley/predictivetext/markov"
+	"github.com/zacwhalley/predictivetext/common"
 	"github.com/zacwhalley/predictivetext/util"
 )
 
@@ -28,9 +28,9 @@ func setInfo(app *cli.App) {
 func setCommands(app *cli.App) {
 	app.Commands = []cli.Command{
 		{
-			Name:    "build",
-			Aliases: []string{"b"},
-			Usage:   "Build the data needed to generate comments for a user",
+			Name:    "build-chain",
+			Aliases: []string{"bc"},
+			Usage:   "Build the markov chain and store it in the db",
 			Flags: []cli.Flag{
 				cli.IntFlag{
 					Name:  "pageLimit",
@@ -43,6 +43,14 @@ func setCommands(app *cli.App) {
 			},
 			Action: func(c *cli.Context) error {
 				return buildAction(c)
+			},
+		},
+		{
+			Name:    "generate-predictions",
+			Aliases: []string{"gp"},
+			Usage:   "Generate and save a prediction set from a chain id",
+			Action: func(c *cli.Context) error {
+				return generateAction(c)
 			},
 		},
 	}
@@ -70,6 +78,11 @@ func buildAction(c *cli.Context) error {
 		return errors.New(source + " is not a valid data source.")
 	}
 
+	return nil
+}
+
+func generateAction(c *cli.Context) error {
+	// TODO - this whole function
 	return nil
 }
 
@@ -149,7 +162,7 @@ func getAllComments(users []string, pageLimit int) <-chan [][]string {
 }
 
 func buildChainFromReddit(users []string, pageLimit int) error {
-	chain := markov.NewChain(2)
+	chain := common.NewChain(2)
 	for commentSet := range getAllComments(users, pageLimit) {
 		for _, page := range commentSet {
 			for _, comment := range page {
@@ -169,7 +182,7 @@ func buildChainFromReddit(users []string, pageLimit int) error {
 
 func buildChainFromStdin() error {
 	reader := bufio.NewReader(os.Stdin)
-	chain := markov.NewChain(2)
+	chain := common.NewChain(2)
 
 	// Generate
 	chain.Build(reader)
