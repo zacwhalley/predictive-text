@@ -32,7 +32,7 @@ func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) 
 	predictions, err := handler.svc.GetPrediction(predSource.Input)
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "Could not get prediction", http.StatusInternalServerError)
+		http.Error(w, "Could not get prediction", http.StatusNotFound)
 		return
 	}
 
