@@ -19,8 +19,8 @@ func Main() {
 
 	// Set up services and handlers
 	db := common.NewMongoClient(mongodbURI)
-	predictionSvc := common.PredictionSvc{db}
-	predictionHandler := PredictionHandler{predictionSvc}
+	predictionSvc := common.PredictionSvc{DB: db}
+	predictionHandler := PredictionHandler{svc: predictionSvc}
 	demoHandler := DemoHandler{}
 
 	r := mux.NewRouter()
