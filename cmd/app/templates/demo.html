@@ -2,16 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <title>Predictive Text Demo</title>
+    <link rel="stylesheet" type="text/css" href="/static/demo.css"></style>
   </head>
   <body>
-    <h3>Predictive Text Demo</h3>
-    <input id="textInput" type="text">
-    <p id="errorMessage"></p>
-    <div id="results" style="display:none;">
-      <p>Results:</p>
-      <ul id="resultsList"></ul>
+    <div id="content">
+      <h3>Predictive Text Demo</h3>
+      <input id="textInput" type="text">
+      <p id="errorMessage"></p>
+      <div id="results" style="display:none;">
+        <ul id="resultsList"></ul>
+      </div>
     </div>
-    
     <p id="apiUrl" style="display:none;">{{.APIUrl}}</p>
     <script src="/static/demo.js"></script>
   </body>
