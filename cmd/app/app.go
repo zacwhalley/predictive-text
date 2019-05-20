@@ -29,13 +29,17 @@ func Main() {
 	r.HandleFunc("/api/prediction", predictionHandler.Handle)
 
 	// ui handling
+	wd, _ := os.Getwd()
+	staticDir := filepath.Join(wd, "./cmd/app/static/")
+
 	r.HandleFunc("/", demoHandler.Handle).
 		Methods(http.MethodGet)
 
-	wd, _ := os.Getwd()
-	staticDir := filepath.Join(wd, "./cmd/app/static/")
 	r.PathPrefix("/static/").
 		Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))).
+		Methods(http.MethodGet)
+
+	r.Handle("/favicon.ico", http.FileServer(http.Dir(staticDir))).
 		Methods(http.MethodGet)
 
 	// start server
