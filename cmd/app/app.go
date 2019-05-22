@@ -26,7 +26,8 @@ func Main() {
 	r := mux.NewRouter()
 
 	// API handling
-	r.HandleFunc("/api/prediction", predictionHandler.Handle)
+	r.HandleFunc("/api/prediction", predictionHandler.Handle).
+		Methods(http.MethodGet)
 
 	// ui handling
 	wd, _ := os.Getwd()

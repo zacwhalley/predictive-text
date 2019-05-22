@@ -30,6 +30,7 @@
     }
     getPredictions();
   }
+
   function getPredictions() {
     // get text from input box
     const input = inputBox.value.trim();
@@ -54,8 +55,10 @@
     
           // add all new results to the list
           for (const prediction of body.predictions)  {
-            const newItem = createResult(body.input, prediction);
-            resultsList.appendChild(newItem);
+            if (prediction && prediction.trim()) {
+              const newItem = createResult(body.input, prediction);
+              resultsList.appendChild(newItem);
+            }
           }  
           results.style.display = ""; // unhide results
           errorMessage.style.display = "none"; // hide error message
@@ -79,10 +82,8 @@
   }
 
   function makePredictionRequest(input) {
-    const request = new Request(apiUrl + "/prediction", {
-      method: "POST",
-      body: JSON.stringify({input: input}),
-    });
+    const requestUrl = `${apiUrl}/prediction?input=${input}`
+    const request = new Request(requestUrl, {method: "GET"});
 
     return fetch(request);
   }
