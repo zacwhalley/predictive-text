@@ -58,11 +58,6 @@ type DBClient interface {
 	UpsertPrediction(prediction Prediction) error
 }
 
-// PredictionRequest is the dto for requesting a prediction
-type PredictionRequest struct {
-	Input string `json:"input"`
-}
-
 // PredictionResponse is the Dto for returning a prediction
 type PredictionResponse struct {
 	Input       string   `json:"input"`

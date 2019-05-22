@@ -21,15 +21,15 @@ type DemoHandler struct{}
 
 // Handle handles requests for predictions
 func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	// Decode request body
-	var predSource domain.PredictionRequest
-	if err := json.NewDecoder(r.Body).Decode(&predSource); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
+	keys, ok := r.URL.Query()["input"]
+	if !ok {
+		http.Error(w, "input parameter mising", http.StatusBadRequest)
 	}
 
+	input := keys[0]
+
 	// Create predictions
-	predictions, err := handler.svc.GetPrediction(predSource.Input)
+	predictions, err := handler.svc.GetPrediction(input)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "Could not get prediction", http.StatusNotFound)
@@ -37,7 +37,7 @@ func (handler PredictionHandler) Handle(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response := domain.PredictionResponse{
-		Input:       predSource.Input,
+		Input:       input,
 		Predictions: predictions,
 	}
 
