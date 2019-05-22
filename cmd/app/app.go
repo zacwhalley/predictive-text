@@ -13,7 +13,7 @@ import (
 
 // Main is the entrypoint for the predictivetext web service
 func Main() {
-	// Get environment variables - TODO: Move this into a config somewhere
+	// Get environment variables
 	port := getEnv("PORT")
 	mongodbURI := getEnv("MONGODB_URI")
 
