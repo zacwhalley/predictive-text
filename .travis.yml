@@ -1,25 +1,24 @@
 language: go
-gobuild_args: -v ./cmd/app/
-
+gobuild_args: "-v ./cmd/app/"
 go:
 - 1.11.x
-
 env:
 - DEP_VERSION="0.5.1"
-
 before_install:
 - curl -L -s https://github.com/golang/dep/releases/download/v${DEP_VERSION}/dep-linux-amd64
   -o $GOPATH/bin/dep
 - chmod +x $GOPATH/bin/dep
-
 install:
 - dep ensure
-
 script:
 - go test
-
 deploy:
   provider: heroku
   api_key:
-    secure: bioNQDYtvw8jXy/TzGIEifETb+7MjX8qL+bW5ua6iOifqD8mQPeRTOh4Fum1I5TNLmzIClYKl7PCRAV1m0VlD5GQR/qGuNBS4sKlI3H5f+o6BQH/wtCDDUlKuKzuAku5kjdX1npGy3SxIyiA14jtcZ6TVT6LB0HDW8r9x4tJ9WMAaYbdPW4abBnkvFvt0NTIoF+iQfEq/ZkzoF1vNlxoLa5DClU1jdSEDKX5N0sbC0Dv+XGwUbaHDbgwg/dBNqeQhlgQlBm2KWNrFvXVp+G/0dv64YLM4liD2444h6+0p98Ma8/a2x6WFgynEnlrwXWvhMXVr43LAdqVbVF5PCTF7zK2E7ybgccmnKykq1q/iEN4z9WUMlUDZDD2eAENsgjLNGFvpLn+dcAKUb8rw5lf7TTIVq4nTDvV2NFRhpYTukYX/IFfS0qKB2JXGfQQjeLdoH24DWzHBQgddUDNFnrpygkn5LV/ipiq8VKnplW4MR3s2zyORHr+oTSCVVLjjmqbr3yVu5vNYYTk1k03jQxhgVvifPBqeInfCr7Z57gERLg6wn5fhcZmssXCIqjohLrVNHNGgTHUSeaP5BPJ9+vqRIq4CPtoAVHNmBTA+fDCZ2Kp3U0eLATP3AQeT77IfGeDR7HLGK977VBz1Xm7L/UuFQMDidnxcBIF33hnRiEFqzA=
-  app: zw-predictive-text
+    master:
+      secure: gPj8Cs4j9uXNKpO3Zq2Ln8Ydobf/eqIxWUPeT7LzyoekelJXfM5oskN1cNYgIdpz1v+GVNSTWzWzIYQFe9W2quRObXf0f+x8LJM3htVXwkcSv8SzGiVrHmpS+/X55vi7s17Kq7LqEBiPO5Mai3ZADjYX+RvZ5R9YWLuGB7Whgm11czxC4DH5mmfeffQXmzoKTmLpg0gqAZvY8Rn3T2fuAX3RWqRfF8BqL9XmIUOYBeFHt+Q1q11Kt9BpSl4wkHI767jILurIidVCZq6F9/NBzL61iaaywH5onhXZOm7krxzpLo5h47gPdktw+B/qWFUmAFHYZW/8rzi67J5XctusYO2GhskFU98p93UvtBKzpseB8q9Ofve5I/ctacji97OfCNbcFEJhBFGsZnxbdy5hpBX0tqFVtarmzU4eNlx1zg6NAz9Wt1bYcWlmn8ubiih6PktSgrjycAsrPWKjaTjid35Qt1JUS7YXqy0eOGgOKko7onkl3GBQrVaDcwNAXSGfzZ8i9P0/JxG7gz98oBpgmRFOyLnL0//G6UVmoWlDsJBD7u0uS89SKezjCnWLEWiNXVClDSIN77B9CspGaHbin/Ns/6nNftPD5KozGSb34dQVu18fu8kknNOJXUZBEO6kNNea9FcJhVy+XgPAMyb8a8Wom+oFAyOIgfHD5uouZcQ=
+    release:
+      secure: bioNQDYtvw8jXy/TzGIEifETb+7MjX8qL+bW5ua6iOifqD8mQPeRTOh4Fum1I5TNLmzIClYKl7PCRAV1m0VlD5GQR/qGuNBS4sKlI3H5f+o6BQH/wtCDDUlKuKzuAku5kjdX1npGy3SxIyiA14jtcZ6TVT6LB0HDW8r9x4tJ9WMAaYbdPW4abBnkvFvt0NTIoF+iQfEq/ZkzoF1vNlxoLa5DClU1jdSEDKX5N0sbC0Dv+XGwUbaHDbgwg/dBNqeQhlgQlBm2KWNrFvXVp+G/0dv64YLM4liD2444h6+0p98Ma8/a2x6WFgynEnlrwXWvhMXVr43LAdqVbVF5PCTF7zK2E7ybgccmnKykq1q/iEN4z9WUMlUDZDD2eAENsgjLNGFvpLn+dcAKUb8rw5lf7TTIVq4nTDvV2NFRhpYTukYX/IFfS0qKB2JXGfQQjeLdoH24DWzHBQgddUDNFnrpygkn5LV/ipiq8VKnplW4MR3s2zyORHr+oTSCVVLjjmqbr3yVu5vNYYTk1k03jQxhgVvifPBqeInfCr7Z57gERLg6wn5fhcZmssXCIqjohLrVNHNGgTHUSeaP5BPJ9+vqRIq4CPtoAVHNmBTA+fDCZ2Kp3U0eLATP3AQeT77IfGeDR7HLGK977VBz1Xm7L/UuFQMDidnxcBIF33hnRiEFqzA=
+  app:
+    master: zw-predictive-text-staging
+    release: zw-predictive-text
