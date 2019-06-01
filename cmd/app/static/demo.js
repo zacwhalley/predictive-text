@@ -6,9 +6,9 @@
   let apiUrl;
 
   function init() {
-    if (location.protocol !== "https:") {
-      location.protocol = "https:";
-    }
+    // if (location.protocol !== "https:") {
+    //   location.protocol = "https:";
+    // }
     
     inputBox = document.getElementById("textInput");
     results = document.getElementById("results");
