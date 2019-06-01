@@ -2,7 +2,7 @@ language: go
 go:
 - 1.12.x
 script:
-- env GO111MODULE=on go test
+- go test
 deploy:
   provider: heroku
   api_key:
