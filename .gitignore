@@ -2,3 +2,4 @@ test-input
 predictivetext
 cmd/app/app
 cmd/cli/cli
+.vscode/
