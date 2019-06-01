@@ -2,6 +2,8 @@ language: go
 gobuild_args: "-v ./cmd/app/"
 go:
 - 1.11.x
+env:
+- GO111MODULE=on
 script:
 - go test
 deploy:
