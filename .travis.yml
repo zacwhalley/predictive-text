@@ -1,5 +1,4 @@
 language: go
-gobuild_args: "-v ./cmd/app/"
 go:
 - 1.12.x
 script:
